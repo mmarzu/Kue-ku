@@ -1,0 +1,2809 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#8C4A27" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="KueKu Catatan" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <link id="dynamic-apple-icon" rel="apple-touch-icon" href="" />
+  <link id="dynamic-favicon" rel="icon" type="image/png" href="" />
+  <link id="dynamic-manifest" rel="manifest" href="" />
+  <title>KueKu - Catatan Jualan Kue Harian</title>
+
+  <!-- Google Fonts: Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+          },
+          colors: {
+            bakery: {
+              cream: '#FDF8F3',
+              latte: '#F5EBE0',
+              sand: '#E6D5C3',
+              caramel: '#C87D55',
+              terracotta: '#9C4A26',
+              espresso: '#3E2215',
+              mocha: '#634133',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Safe Area & Mobile App Native Feel */
+    :root {
+      --sat: env(safe-area-inset-top, 0px);
+      --sab: env(safe-area-inset-bottom, 0px);
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: #FDF8F3;
+      color: #3E2215;
+      -webkit-tap-highlight-color: transparent;
+      overscroll-behavior-y: none;
+      padding-top: var(--sat);
+    }
+
+    /* Hide scrollbar for horizontal pill filters */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    /* Bottom navigation safe padding */
+    .pb-safe-nav {
+      padding-bottom: calc(5.5rem + var(--sab));
+    }
+    .bottom-nav-bar {
+      padding-bottom: max(0.5rem, var(--sab));
+    }
+
+    /* Smooth animations */
+    @keyframes slideUp {
+      from { transform: translateY(100%); opacity: 0.5; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.98); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    .animate-slide-up {
+      animation: slideUp 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    .animate-fade-in {
+      animation: fadeIn 0.2s ease-out forwards;
+    }
+
+    /* Touch-friendly active feedback */
+    .btn-press:active {
+      transform: scale(0.96);
+      transition: transform 0.08s ease;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col items-center bg-[#F3EAE0]">
+
+  <!-- Main Mobile App Container (Responsive: Full width on mobile, centered app frame on tablet/desktop) -->
+  <div id="app-shell" class="w-full max-w-lg min-h-screen bg-bakery-cream shadow-2xl relative flex flex-col overflow-x-hidden">
+
+    <!-- Top App Header -->
+    <header class="sticky top-0 z-30 bg-bakery-cream/95 backdrop-blur-md border-b border-bakery-sand/60 px-4 py-3">
+      <div class="flex items-center justify-between gap-2">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-bakery-caramel to-bakery-terracotta flex items-center justify-center text-white shadow-sm shrink-0">
+            <!-- Bakery Croissant/Cake SVG Icon -->
+            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20 21v-8a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8"/>
+              <path d="M4 16s.5-1 2-1 2.5 2 4 2 2.5-2 4-2 2.5 2 4 2 2-1 2-1"/>
+              <path d="M2 21h20"/>
+              <path d="M7 8v3"/>
+              <path d="M12 8v3"/>
+              <path d="M17 8v3"/>
+              <path d="M7 4h.01"/>
+              <path d="M12 4h.01"/>
+              <path d="M17 4h.01"/>
+            </svg>
+          </div>
+          <div class="min-w-0">
+            <div class="flex items-center gap-1.5">
+              <h1 class="text-base font-extrabold tracking-tight text-bakery-espresso leading-tight truncate">KueKu</h1>
+              <span id="offline-status-badge" class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-emerald-100/90 text-emerald-800 text-[9px] font-extrabold shrink-0">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                <span id="offline-status-text">Offline Ready</span>
+              </span>
+            </div>
+            <p class="text-[11px] font-medium text-bakery-mocha truncate" id="header-store-subtitle">Buku Kas & Stok Kue Harian</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-1.5 shrink-0">
+          <!-- Install App Button (Hidden automatically when already running in standalone mode) -->
+          <button id="header-install-btn" onclick="triggerInstallApp()" class="h-9 px-2.5 rounded-xl bg-bakery-terracotta text-white text-[11px] font-extrabold flex items-center gap-1 shadow-xs btn-press" title="Pasang ke Layar Utama HP">
+            <svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            <span>Pasang</span>
+          </button>
+
+          <!-- Date Quick Switcher Pill -->
+          <div class="flex items-center bg-bakery-latte border border-bakery-sand rounded-xl p-0.5">
+            <button onclick="shiftDate(-1)" aria-label="Hari sebelumnya" class="w-7 h-8 flex items-center justify-center rounded-lg text-bakery-espresso hover:bg-white/70 btn-press">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+            </button>
+            <label class="relative flex items-center gap-1 px-1.5 py-1 text-xs font-bold text-bakery-terracotta cursor-pointer">
+              <span id="display-date-label">Hari Ini</span>
+              <input type="date" id="date-picker-input" onchange="setSelectedDate(this.value)" class="absolute inset-0 opacity-0 w-full h-full cursor-pointer" />
+            </label>
+            <button onclick="shiftDate(1)" aria-label="Hari berikutnya" class="w-7 h-8 flex items-center justify-center rounded-lg text-bakery-espresso hover:bg-white/70 btn-press">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Date Pills (Kemarin / Hari Ini) -->
+      <div class="flex items-center justify-between mt-2.5 pt-2 border-t border-bakery-sand/40 text-xs">
+        <div class="flex items-center gap-1.5">
+          <button onclick="selectRelativeDate(-1)" id="pill-yesterday" class="px-2.5 py-1 rounded-full font-semibold transition-colors bg-bakery-latte text-bakery-mocha">Kemarin</button>
+          <button onclick="selectRelativeDate(0)" id="pill-today" class="px-2.5 py-1 rounded-full font-semibold transition-colors bg-bakery-terracotta text-white">Hari Ini</button>
+        </div>
+        <span id="full-date-text" class="text-[11px] font-medium text-bakery-mocha"></span>
+      </div>
+    </header>
+
+    <!-- MAIN CONTENT VIEWS -->
+    <main class="flex-1 px-4 pt-4 pb-safe-nav space-y-4">
+
+      <!-- ========================================== -->
+      <!-- TAB 1: DASHBOARD / RINGKASAN HARIAN        -->
+      <!-- ========================================== -->
+      <section id="view-dashboard" class="space-y-4 animate-fade-in">
+        <!-- Smart Backup Reminder Banner -->
+        <div id="backup-reminder-banner" class="hidden bg-sky-50 border border-sky-300/80 rounded-2xl p-3 flex items-center justify-between gap-2.5 shadow-xs">
+          <div class="flex items-start gap-2.5 min-w-0">
+            <div class="w-8 h-8 rounded-xl bg-sky-100 text-sky-700 flex items-center justify-center shrink-0 mt-0.5">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+            </div>
+            <div class="text-xs text-sky-950 leading-snug min-w-0">
+              <span class="font-extrabold block">Pengingat Backup Database</span>
+              <span id="backup-reminder-desc" class="text-[11px] text-sky-800 block">Simpan cadangan file .json agar data aman.</span>
+            </div>
+          </div>
+          <button onclick="exportDatabaseJSON()" class="min-h-[38px] px-3 rounded-xl bg-sky-600 text-white text-[11px] font-extrabold shadow-xs shrink-0 btn-press">
+            Export Sekarang
+          </button>
+        </div>
+
+        <!-- Sample Data Banner (Shown when using initial demo data so user can start fresh with 1 tap) -->
+        <div id="demo-data-banner" class="hidden bg-amber-50 border border-amber-300/80 rounded-2xl p-3 flex items-center justify-between gap-2.5 shadow-xs">
+          <div class="text-xs text-amber-950 leading-snug">
+            <span class="font-extrabold block">Mode Simulasi / Data Contoh</span>
+            <span class="text-[11px] text-amber-800">Siap mulai berjualan sungguhan?</span>
+          </div>
+          <button onclick="startFreshFromZero()" class="min-h-[38px] px-3 rounded-xl bg-amber-600 text-white text-[11px] font-extrabold shadow-xs shrink-0 btn-press">
+            Mulai dari Nol
+          </button>
+        </div>
+
+        <!-- Hero Net Profit Card -->
+        <div class="rounded-3xl bg-gradient-to-br from-bakery-espresso via-[#4E2B1B] to-bakery-terracotta text-white p-5 shadow-lg relative overflow-hidden">
+          <div class="absolute -right-6 -top-6 w-28 h-28 rounded-full bg-white/5 pointer-events-none"></div>
+          <div class="absolute -left-4 -bottom-8 w-24 h-24 rounded-full bg-bakery-caramel/20 pointer-events-none"></div>
+
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold uppercase tracking-wider text-bakery-sand">Laba Bersih (Profit)</span>
+            <span id="dash-margin-badge" class="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-200 border border-emerald-400/30">Margin 0%</span>
+          </div>
+          <div class="mt-1.5 flex items-baseline gap-2">
+            <h2 id="dash-net-profit" class="text-3xl font-extrabold tracking-tight">Rp 0</h2>
+          </div>
+          <p class="text-[11px] text-bakery-sand/90 mt-1">Omzet dikurangi modal bahan/pengeluaran hari ini</p>
+
+          <!-- Daily Target Progress Bar -->
+          <div class="mt-4 pt-3.5 border-t border-white/15">
+            <div class="flex items-center justify-between text-xs mb-1.5">
+              <span class="text-bakery-sand font-medium">Target Omzet Harian</span>
+              <button onclick="openTargetModal()" class="font-bold text-white underline decoration-bakery-caramel underline-offset-2 flex items-center gap-1">
+                <span id="dash-target-text">Rp 0 / Rp 500.000</span>
+                <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
+              </button>
+            </div>
+            <div class="w-full h-2.5 bg-black/30 rounded-full overflow-hidden">
+              <div id="dash-target-bar" class="h-full bg-gradient-to-r from-amber-300 to-emerald-400 rounded-full transition-all duration-500" style="width: 0%"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2x2 Financial & Stock Metric Grid -->
+        <div class="grid grid-cols-2 gap-3">
+          <!-- Total Omzet -->
+          <div class="bg-white rounded-2xl p-3.5 border border-bakery-sand/70 shadow-sm">
+            <div class="flex items-center gap-2 text-emerald-700 mb-1">
+              <div class="w-7 h-7 rounded-xl bg-emerald-50 flex items-center justify-center">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+              </div>
+              <span class="text-xs font-bold text-bakery-mocha">Total Omzet</span>
+            </div>
+            <p id="dash-omzet" class="text-lg font-extrabold text-bakery-espresso">Rp 0</p>
+            <p id="dash-tx-count" class="text-[11px] text-bakery-mocha mt-0.5">0 transaksi</p>
+          </div>
+
+          <!-- Pengeluaran / Belanja -->
+          <div class="bg-white rounded-2xl p-3.5 border border-bakery-sand/70 shadow-sm">
+            <div class="flex items-center gap-2 text-rose-600 mb-1">
+              <div class="w-7 h-7 rounded-xl bg-rose-50 flex items-center justify-center">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>
+              </div>
+              <span class="text-xs font-bold text-bakery-mocha">Pengeluaran</span>
+            </div>
+            <p id="dash-expense" class="text-lg font-extrabold text-rose-700">Rp 0</p>
+            <p id="dash-expense-count" class="text-[11px] text-bakery-mocha mt-0.5">0 catatan belanja</p>
+          </div>
+
+          <!-- Kue Terjual -->
+          <div class="bg-white rounded-2xl p-3.5 border border-bakery-sand/70 shadow-sm">
+            <div class="flex items-center gap-2 text-bakery-terracotta mb-1">
+              <div class="w-7 h-7 rounded-xl bg-bakery-latte flex items-center justify-center">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+              </div>
+              <span class="text-xs font-bold text-bakery-mocha">Kue Terjual</span>
+            </div>
+            <p id="dash-sold-pcs" class="text-lg font-extrabold text-bakery-espresso">0 pcs</p>
+            <p id="dash-hpp-total" class="text-[11px] text-bakery-mocha mt-0.5">HPP Terjual: Rp 0</p>
+          </div>
+
+          <!-- Sisa Stok Kue -->
+          <div class="bg-white rounded-2xl p-3.5 border border-bakery-sand/70 shadow-sm">
+            <div class="flex items-center gap-2 text-amber-700 mb-1">
+              <div class="w-7 h-7 rounded-xl bg-amber-50 flex items-center justify-center">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+              </div>
+              <span class="text-xs font-bold text-bakery-mocha">Sisa Stok</span>
+            </div>
+            <p id="dash-remaining-pcs" class="text-lg font-extrabold text-bakery-espresso">0 pcs</p>
+            <p id="dash-initial-pcs" class="text-[11px] text-bakery-mocha mt-0.5">Dari 0 pcs produksi</p>
+          </div>
+        </div>
+
+        <!-- Payment Methods Breakdown & Kasbon Alert -->
+        <div class="bg-white rounded-2xl p-4 border border-bakery-sand/70 shadow-sm space-y-3">
+          <div class="flex items-center justify-between">
+            <h3 class="text-sm font-bold text-bakery-espresso">Rincian Metode Pembayaran</h3>
+            <span id="dash-kasbon-pill" class="hidden text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-700">Kasbon: Rp 0</span>
+          </div>
+          <div class="grid grid-cols-3 gap-2 text-center">
+            <div class="bg-bakery-cream rounded-xl p-2.5 border border-bakery-sand/50">
+              <span class="text-[11px] font-semibold text-bakery-mocha block">Tunai (Cash)</span>
+              <span id="dash-pay-tunai" class="text-xs font-extrabold text-bakery-espresso mt-0.5 block">Rp 0</span>
+            </div>
+            <div class="bg-bakery-cream rounded-xl p-2.5 border border-bakery-sand/50">
+              <span class="text-[11px] font-semibold text-bakery-mocha block">QRIS</span>
+              <span id="dash-pay-qris" class="text-xs font-extrabold text-bakery-espresso mt-0.5 block">Rp 0</span>
+            </div>
+            <div class="bg-bakery-cream rounded-xl p-2.5 border border-bakery-sand/50">
+              <span class="text-[11px] font-semibold text-bakery-mocha block">Transfer</span>
+              <span id="dash-pay-transfer" class="text-xs font-extrabold text-bakery-espresso mt-0.5 block">Rp 0</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Action Shortcuts -->
+        <div class="grid grid-cols-2 gap-3">
+          <button onclick="switchTab('kasir')" class="min-h-[48px] rounded-2xl bg-bakery-terracotta text-white font-bold text-sm flex items-center justify-center gap-2 shadow-md btn-press">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+            <span>Buka Kasir</span>
+          </button>
+          <button onclick="openExpenseModal()" class="min-h-[48px] rounded-2xl bg-white border-2 border-bakery-terracotta text-bakery-terracotta font-bold text-sm flex items-center justify-center gap-2 btn-press">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            <span>Catat Belanja</span>
+          </button>
+        </div>
+
+        <!-- Top Products Today Preview -->
+        <div class="bg-white rounded-2xl p-4 border border-bakery-sand/70 shadow-sm">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="text-sm font-bold text-bakery-espresso">Kue Terlaris Hari Ini</h3>
+            <button onclick="switchTab('stok')" class="text-xs font-bold text-bakery-terracotta">Atur Stok →</button>
+          </div>
+          <div id="dash-top-products" class="space-y-2.5">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- TAB 2: PRODUK & STOK KUE HARIAN            -->
+      <!-- ========================================== -->
+      <section id="view-stok" class="hidden space-y-4 animate-fade-in">
+        <!-- Header & Add Product Button -->
+        <div class="flex items-center justify-between gap-2">
+          <div>
+            <h2 class="text-lg font-extrabold text-bakery-espresso">Stok & Menu Kue</h2>
+            <p class="text-xs text-bakery-mocha">Atur produksi & jual cepat dengan tombol (+/-)</p>
+          </div>
+          <button onclick="openProductModal()" class="min-h-[44px] px-3.5 rounded-2xl bg-bakery-terracotta text-white text-xs font-bold flex items-center gap-1.5 shadow-sm btn-press">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            <span>Menu Baru</span>
+          </button>
+        </div>
+
+        <!-- Copy Previous Day Stock Banner -->
+        <div class="bg-bakery-latte/80 border border-bakery-sand rounded-2xl p-3 flex items-center justify-between gap-2">
+          <div class="text-xs text-bakery-espresso">
+            <span class="font-bold block">Mulai Hari Baru?</span>
+            <span class="text-bakery-mocha text-[11px]">Salin jumlah stok awal dari kemarin</span>
+          </div>
+          <button onclick="copyYesterdayStock()" class="min-h-[38px] px-3 rounded-xl bg-white border border-bakery-sand text-bakery-terracotta text-xs font-bold shadow-xs btn-press shrink-0">
+            Salin Stok Kemarin
+          </button>
+        </div>
+
+        <!-- Search & Category Filter -->
+        <div class="space-y-2.5">
+          <div class="relative">
+            <svg class="w-4 h-4 text-bakery-mocha absolute left-3.5 top-1/2 -translate-y-1/2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" id="stok-search-input" oninput="renderStokView()" placeholder="Cari nama kue..." class="w-full h-11 pl-10 pr-4 rounded-2xl bg-white border border-bakery-sand text-sm focus:outline-none focus:border-bakery-terracotta" />
+          </div>
+          <div id="stok-category-pills" class="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+
+        <!-- Product Cards List -->
+        <div id="stok-product-list" class="space-y-3">
+          <!-- Populated by JS -->
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- TAB 3: KASIR CEPAT & TRANSAKSI (PEMASUKAN) -->
+      <!-- ========================================== -->
+      <section id="view-kasir" class="hidden space-y-4 animate-fade-in">
+        <!-- Sub-mode Toggle: Kasir Baru vs Riwayat Transaksi -->
+        <div class="grid grid-cols-2 bg-bakery-latte p-1 rounded-2xl border border-bakery-sand">
+          <button onclick="setKasirSubTab('pos')" id="subtab-pos-btn" class="min-h-[42px] rounded-xl text-xs font-bold transition-all bg-white text-bakery-terracotta shadow-xs">
+            Kasir Pesanan
+          </button>
+          <button onclick="setKasirSubTab('history')" id="subtab-history-btn" class="min-h-[42px] rounded-xl text-xs font-bold transition-all text-bakery-mocha">
+            Riwayat (<span id="kasir-history-badge">0</span>)
+          </button>
+        </div>
+
+        <!-- SUB-VIEW A: POINT OF SALE (POS) -->
+        <div id="kasir-pos-panel" class="space-y-4">
+          <!-- Quick Product Grid for POS -->
+          <div class="grid grid-cols-2 gap-2.5" id="pos-product-grid">
+            <!-- Populated by JS -->
+          </div>
+
+          <!-- Floating / Inline Cart Checkout Card -->
+          <div class="bg-white rounded-3xl border-2 border-bakery-caramel/40 p-4 shadow-md space-y-3.5">
+            <div class="flex items-center justify-between border-b border-bakery-sand/60 pb-2.5">
+              <div class="flex items-center gap-2">
+                <span class="w-7 h-7 rounded-xl bg-bakery-terracotta text-white text-xs font-extrabold flex items-center justify-center" id="cart-total-qty">0</span>
+                <h3 class="text-sm font-extrabold text-bakery-espresso">Keranjang Pesanan</h3>
+              </div>
+              <button onclick="clearCart()" class="text-xs font-semibold text-rose-600 hover:underline">Kosongkan</button>
+            </div>
+
+            <!-- Cart Items List -->
+            <div id="cart-items-container" class="space-y-2 max-h-52 overflow-y-auto pr-1">
+              <p class="text-xs text-center text-bakery-mocha py-4">Ketuk menu kue di atas untuk menambahkan ke keranjang</p>
+            </div>
+
+            <!-- Customer & Payment Options -->
+            <div class="space-y-3 pt-2 border-t border-bakery-sand/60">
+              <div class="grid grid-cols-2 gap-2.5">
+                <div>
+                  <label class="block text-[11px] font-bold text-bakery-mocha mb-1">Nama Pelanggan</label>
+                  <input type="text" id="pos-customer-name" placeholder="Pelanggan Umum" class="w-full h-10 px-3 rounded-xl bg-bakery-cream border border-bakery-sand text-xs font-medium focus:outline-none focus:border-bakery-terracotta" />
+                </div>
+                <div>
+                  <label class="block text-[11px] font-bold text-bakery-mocha mb-1">Status Bayar</label>
+                  <select id="pos-payment-status" class="w-full h-10 px-2.5 rounded-xl bg-bakery-cream border border-bakery-sand text-xs font-bold text-bakery-espresso focus:outline-none focus:border-bakery-terracotta">
+                    <option value="Lunas">✅ Lunas</option>
+                    <option value="Kasbon">⏳ Kasbon (Hutang)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-[11px] font-bold text-bakery-mocha mb-1">Metode Pembayaran</label>
+                <div class="grid grid-cols-3 gap-2">
+                  <button type="button" onclick="selectPaymentMethod('Tunai')" data-pay="Tunai" class="pay-method-btn min-h-[40px] rounded-xl border-2 border-bakery-terracotta bg-bakery-terracotta/10 text-bakery-terracotta text-xs font-bold">Tunai</button>
+                  <button type="button" onclick="selectPaymentMethod('QRIS')" data-pay="QRIS" class="pay-method-btn min-h-[40px] rounded-xl border border-bakery-sand bg-bakery-cream text-bakery-mocha text-xs font-bold">QRIS</button>
+                  <button type="button" onclick="selectPaymentMethod('Transfer')" data-pay="Transfer" class="pay-method-btn min-h-[40px] rounded-xl border border-bakery-sand bg-bakery-cream text-bakery-mocha text-xs font-bold">Transfer</button>
+                </div>
+              </div>
+
+              <div>
+                <input type="text" id="pos-note" placeholder="Catatan pesanan (opsional, misal: bungkus pisah)" class="w-full h-10 px-3 rounded-xl bg-bakery-cream border border-bakery-sand text-xs focus:outline-none focus:border-bakery-terracotta" />
+              </div>
+
+              <!-- Total & Submit -->
+              <div class="pt-1 flex items-center justify-between">
+                <div>
+                  <span class="text-[11px] font-semibold text-bakery-mocha block">Total Tagihan</span>
+                  <span id="cart-grand-total" class="text-xl font-extrabold text-bakery-espresso">Rp 0</span>
+                </div>
+                <button onclick="checkoutCart()" class="min-h-[48px] px-6 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-sm shadow-md btn-press flex items-center gap-2">
+                  <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                  <span>Simpan Transaksi</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SUB-VIEW B: RIWAYAT TRANSAKSI HARIAN -->
+        <div id="kasir-history-panel" class="hidden space-y-3">
+          <div class="flex items-center justify-between">
+            <h3 class="text-sm font-bold text-bakery-espresso">Daftar Penjualan Hari Ini</h3>
+            <select id="history-filter-status" onchange="renderTransactionHistory()" class="h-9 px-2.5 rounded-xl bg-white border border-bakery-sand text-xs font-bold text-bakery-espresso">
+              <option value="ALL">Semua Status</option>
+              <option value="Lunas">Lunas Saja</option>
+              <option value="Kasbon">Kasbon Saja</option>
+            </select>
+          </div>
+          <div id="transaction-history-list" class="space-y-3">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- TAB 4: PENGELUARAN / BELANJA BAHAN         -->
+      <!-- ========================================== -->
+      <section id="view-belanja" class="hidden space-y-4 animate-fade-in">
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 class="text-lg font-extrabold text-bakery-espresso">Belanja & Pengeluaran</h2>
+            <p class="text-xs text-bakery-mocha">Catat bahan baku, kemasan, gas, dll.</p>
+          </div>
+          <button onclick="openExpenseModal()" class="min-h-[44px] px-3.5 rounded-2xl bg-rose-600 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm btn-press">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            <span>Tambah</span>
+          </button>
+        </div>
+
+        <!-- Total Expense Summary Card -->
+        <div class="bg-rose-50 border border-rose-200 rounded-2xl p-4 flex items-center justify-between">
+          <div>
+            <span class="text-xs font-semibold text-rose-800">Total Pengeluaran Hari Ini</span>
+            <p id="belanja-total-amount" class="text-2xl font-extrabold text-rose-700 mt-0.5">Rp 0</p>
+          </div>
+          <div class="w-11 h-11 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center">
+            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+          </div>
+        </div>
+
+        <!-- Quick Preset Expense Chips -->
+        <div>
+          <span class="text-[11px] font-bold text-bakery-mocha block mb-1.5">Catat Cepat Belanja Umum:</span>
+          <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1">
+            <button onclick="openExpenseModal('Tepung & Gula', 'Bahan Baku')" class="px-3 py-2 rounded-xl bg-white border border-bakery-sand text-xs font-semibold text-bakery-espresso shrink-0 btn-press">+ Tepung & Gula</button>
+            <button onclick="openExpenseModal('Minyak & Mentega', 'Bahan Baku')" class="px-3 py-2 rounded-xl bg-white border border-bakery-sand text-xs font-semibold text-bakery-espresso shrink-0 btn-press">+ Minyak & Mentega</button>
+            <button onclick="openExpenseModal('Mika / Plastik Kemasan', 'Kemasan')" class="px-3 py-2 rounded-xl bg-white border border-bakery-sand text-xs font-semibold text-bakery-espresso shrink-0 btn-press">+ Kemasan/Mika</button>
+            <button onclick="openExpenseModal('Gas LPG / Listrik', 'Operasional')" class="px-3 py-2 rounded-xl bg-white border border-bakery-sand text-xs font-semibold text-bakery-espresso shrink-0 btn-press">+ Gas LPG</button>
+          </div>
+        </div>
+
+        <!-- Expense List -->
+        <div id="expense-list-container" class="space-y-2.5">
+          <!-- Populated by JS -->
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- TAB 5: LAPORAN, REKAP & EKSPOR DATA        -->
+      <!-- ========================================== -->
+      <section id="view-laporan" class="hidden space-y-4 animate-fade-in">
+        <div>
+          <h2 class="text-lg font-extrabold text-bakery-espresso">Laporan & Rekap Tutup Toko</h2>
+          <p class="text-xs text-bakery-mocha">Evaluasi penjualan, tren 7 hari & ekspor data</p>
+        </div>
+
+        <!-- WhatsApp Report Card -->
+        <div class="bg-gradient-to-br from-emerald-600 to-emerald-700 text-white rounded-3xl p-4 shadow-md space-y-3">
+          <div class="flex items-start justify-between gap-2">
+            <div>
+              <h3 class="text-sm font-extrabold">Laporan Tutup Toko (WhatsApp)</h3>
+              <p class="text-xs text-emerald-100 mt-0.5">Format teks rapi otomatis siap kirim ke grup keluarga atau catatan pribadi.</p>
+            </div>
+            <div class="w-10 h-10 rounded-2xl bg-white/15 flex items-center justify-center shrink-0">
+              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+            </div>
+          </div>
+          <button onclick="copyWhatsAppReport()" class="w-full min-h-[46px] rounded-2xl bg-white text-emerald-800 font-extrabold text-xs flex items-center justify-center gap-2 shadow-sm btn-press">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            <span>Salin Laporan WhatsApp Hari Ini</span>
+          </button>
+        </div>
+
+        <!-- 7-Day Revenue & Profit Bar Chart (Lightweight Canvas) -->
+        <div class="bg-white rounded-2xl p-4 border border-bakery-sand/70 shadow-sm space-y-3">
+          <div class="flex items-center justify-between">
+            <h3 class="text-sm font-bold text-bakery-espresso">Tren 7 Hari Terakhir</h3>
+            <div class="flex items-center gap-3 text-[11px] font-semibold">
+              <span class="flex items-center gap-1"><i class="w-2.5 h-2.5 rounded-xs bg-bakery-caramel inline-block"></i>Omzet</span>
+              <span class="flex items-center gap-1"><i class="w-2.5 h-2.5 rounded-xs bg-emerald-500 inline-block"></i>Profit</span>
+            </div>
+          </div>
+          <div class="w-full h-44 relative">
+            <canvas id="weekly-chart-canvas" class="w-full h-full"></canvas>
+          </div>
+        </div>
+
+        <!-- Product Performance & Waste Evaluation Table -->
+        <div class="bg-white rounded-2xl p-4 border border-bakery-sand/70 shadow-sm space-y-3">
+          <h3 class="text-sm font-bold text-bakery-espresso">Rekap Stok & Sisa Kue (Evaluasi)</h3>
+          <div id="report-product-breakdown" class="divide-y divide-bakery-sand/50 text-xs">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+
+        <!-- Unified Manual Local Database Center (No Cloud) -->
+        <div class="bg-white rounded-2xl p-4 border-2 border-bakery-caramel/40 shadow-sm space-y-3.5">
+          <div class="flex items-start justify-between gap-2">
+            <div>
+              <div class="flex items-center gap-1.5">
+                <h3 class="text-sm font-extrabold text-bakery-espresso">Database Lokal & Backup Manual</h3>
+              </div>
+              <p class="text-[11px] text-bakery-mocha mt-0.5">100% tersimpan offline di HP Anda (Tanpa Cloud)</p>
+            </div>
+            <span id="db-health-badge" class="text-[10px] font-extrabold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 shrink-0">Aman</span>
+          </div>
+
+          <!-- Local Storage Statistics Grid -->
+          <div class="grid grid-cols-3 gap-2 bg-bakery-cream rounded-xl p-2.5 border border-bakery-sand/60 text-center">
+            <div>
+              <span class="text-[10px] font-semibold text-bakery-mocha block">Hari Tercatat</span>
+              <span id="db-stat-days" class="text-xs font-extrabold text-bakery-espresso mt-0.5 block">0 hari</span>
+            </div>
+            <div class="border-x border-bakery-sand/60">
+              <span class="text-[10px] font-semibold text-bakery-mocha block">Transaksi / Belanja</span>
+              <span id="db-stat-records" class="text-xs font-extrabold text-bakery-espresso mt-0.5 block">0 / 0</span>
+            </div>
+            <div>
+              <span class="text-[10px] font-semibold text-bakery-mocha block">Menu / Ukuran</span>
+              <span id="db-stat-size" class="text-xs font-extrabold text-bakery-terracotta mt-0.5 block">0 / 0 KB</span>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between text-[11px] bg-bakery-latte/60 px-3 py-2 rounded-xl border border-bakery-sand/50">
+            <span class="text-bakery-mocha font-medium">Backup terakhir:</span>
+            <span id="db-last-backup-text" class="font-bold text-bakery-espresso">Belum pernah</span>
+          </div>
+
+          <!-- Primary Export & Import Actions -->
+          <div class="grid grid-cols-2 gap-2.5">
+            <button onclick="exportDatabaseJSON()" class="min-h-[46px] px-3 rounded-xl bg-bakery-terracotta text-white font-extrabold text-xs flex items-center justify-center gap-1.5 shadow-xs btn-press">
+              <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              <span>Export Database (.json)</span>
+            </button>
+            <label class="min-h-[46px] px-3 rounded-xl bg-emerald-600 text-white font-extrabold text-xs flex items-center justify-center gap-1.5 shadow-xs cursor-pointer btn-press">
+              <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              <span>Import Database (.json)</span>
+              <input type="file" id="db-import-file-input" accept=".json,application/json" onchange="handleImportFileSelect(event)" class="hidden" />
+            </label>
+          </div>
+
+          <!-- Secondary Text Clipboard / Paste JSON & CSV Export -->
+          <div class="grid grid-cols-3 gap-2">
+            <button onclick="copyDatabaseJSONText()" class="min-h-[40px] px-2 rounded-xl bg-bakery-latte text-bakery-espresso font-bold text-[11px] flex items-center justify-center gap-1 border border-bakery-sand btn-press">
+              <span>Salin Teks JSON</span>
+            </button>
+            <button onclick="openPasteImportModal()" class="min-h-[40px] px-2 rounded-xl bg-bakery-latte text-bakery-espresso font-bold text-[11px] flex items-center justify-center gap-1 border border-bakery-sand btn-press">
+              <span>Tempel JSON</span>
+            </button>
+            <button onclick="exportCSV()" class="min-h-[40px] px-2 rounded-xl bg-bakery-latte text-bakery-espresso font-bold text-[11px] flex items-center justify-center gap-1 border border-bakery-sand btn-press">
+              <span>Ekspor CSV</span>
+            </button>
+          </div>
+
+          <!-- Undo Last Import Banner (Shown when preImportSnapshot exists) -->
+          <div id="undo-import-box" class="hidden bg-amber-50 border border-amber-300 rounded-xl p-2.5 flex items-center justify-between gap-2">
+            <span class="text-[11px] font-semibold text-amber-900">Salah pilih file/mode impor?</span>
+            <button onclick="undoLastImport()" class="min-h-[34px] px-2.5 rounded-lg bg-amber-600 text-white text-[11px] font-extrabold shrink-0 btn-press">
+              Batalkan Import Terakhir
+            </button>
+          </div>
+
+          <!-- Standalone PWA & Reset Controls -->
+          <div class="pt-2.5 border-t border-bakery-sand/50 space-y-2">
+            <div class="grid grid-cols-2 gap-2">
+              <button onclick="triggerInstallApp()" class="min-h-[40px] px-3 rounded-xl bg-bakery-cream border border-bakery-sand text-bakery-espresso font-bold text-[11px] flex items-center justify-center gap-1.5 btn-press">
+                <span>Pasang ke Layar HP</span>
+              </button>
+              <button onclick="downloadStandaloneApp()" class="min-h-[40px] px-3 rounded-xl bg-bakery-cream border border-bakery-sand text-bakery-espresso font-bold text-[11px] flex items-center justify-center gap-1.5 btn-press">
+                <span>Unduh KueKu.html</span>
+              </button>
+            </div>
+            <div class="flex items-center justify-between gap-2 pt-1">
+              <button onclick="loadDemoData()" class="min-h-[38px] px-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-[11px] font-bold btn-press">Muat Data Contoh</button>
+              <button onclick="openResetConfirmModal()" class="min-h-[38px] px-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-[11px] font-bold btn-press">Reset Kosong</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- ========================================== -->
+    <!-- BOTTOM NAVIGATION BAR (MOBILE NATIVE STYLE)-->
+    <!-- ========================================== -->
+    <nav class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-lg z-40 bg-white/95 backdrop-blur-md border-t border-bakery-sand/80 px-2 pt-1.5 bottom-nav-bar shadow-[0_-4px_20px_rgba(62,34,21,0.06)]">
+      <div class="grid grid-cols-5 gap-1">
+        <button onclick="switchTab('dashboard')" data-nav="dashboard" class="nav-item min-h-[52px] flex flex-col items-center justify-center rounded-2xl text-bakery-terracotta bg-bakery-latte/70 transition-colors">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/></svg>
+          <span class="text-[10px] font-bold mt-1">Ringkasan</span>
+        </button>
+
+        <button onclick="switchTab('stok')" data-nav="stok" class="nav-item min-h-[52px] flex flex-col items-center justify-center rounded-2xl text-bakery-mocha hover:bg-bakery-cream transition-colors">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+          <span class="text-[10px] font-bold mt-1">Stok Kue</span>
+        </button>
+
+        <button onclick="switchTab('kasir')" data-nav="kasir" class="nav-item min-h-[52px] flex flex-col items-center justify-center rounded-2xl text-bakery-mocha hover:bg-bakery-cream transition-colors relative">
+          <span id="nav-cart-dot" class="hidden absolute top-1.5 right-4 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-white"></span>
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+          <span class="text-[10px] font-bold mt-1">Kasir</span>
+        </button>
+
+        <button onclick="switchTab('belanja')" data-nav="belanja" class="nav-item min-h-[52px] flex flex-col items-center justify-center rounded-2xl text-bakery-mocha hover:bg-bakery-cream transition-colors">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          <span class="text-[10px] font-bold mt-1">Belanja</span>
+        </button>
+
+        <button onclick="switchTab('laporan')" data-nav="laporan" class="nav-item min-h-[52px] flex flex-col items-center justify-center rounded-2xl text-bakery-mocha hover:bg-bakery-cream transition-colors">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          <span class="text-[10px] font-bold mt-1">Laporan</span>
+        </button>
+      </div>
+    </nav>
+
+    <!-- ========================================== -->
+    <!-- MODALS & BOTTOM SHEETS                     -->
+    <!-- ========================================== -->
+
+    <!-- Modal 1: Add / Edit Product & Daily Stock -->
+    <div id="modal-product" class="hidden fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-end sm:items-center justify-center">
+      <div class="w-full max-w-lg bg-white rounded-t-3xl sm:rounded-3xl p-5 space-y-4 animate-slide-up max-h-[90vh] overflow-y-auto">
+        <div class="flex items-center justify-between border-b border-bakery-sand pb-3">
+          <h3 id="modal-product-title" class="text-base font-extrabold text-bakery-espresso">Tambah Menu Kue</h3>
+          <button onclick="closeModal('modal-product')" class="w-9 h-9 rounded-full bg-bakery-cream flex items-center justify-center text-bakery-espresso font-bold">✕</button>
+        </div>
+
+        <form onsubmit="saveProductForm(event)" class="space-y-3">
+          <input type="hidden" id="prod-id" />
+          <div>
+            <label class="block text-xs font-bold text-bakery-mocha mb-1">Nama Kue *</label>
+            <input type="text" id="prod-name" required placeholder="Contoh: Risoles Mayo Smoked Beef" class="w-full h-11 px-3.5 rounded-xl bg-bakery-cream border border-bakery-sand text-sm font-semibold focus:outline-none focus:border-bakery-terracotta" />
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-bakery-mocha mb-1">Kategori</label>
+            <select id="prod-category" class="w-full h-11 px-3 rounded-xl bg-bakery-cream border border-bakery-sand text-sm font-semibold focus:outline-none focus:border-bakery-terracotta">
+              <option value="Kue Basah">Kue Basah</option>
+              <option value="Gorengan">Gorengan</option>
+              <option value="Bolu/Cake">Bolu / Cake</option>
+              <option value="Kue Kering">Kue Kering</option>
+              <option value="Minuman">Minuman</option>
+            </select>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-bold text-bakery-mocha mb-1">Harga Jual (Rp) *</label>
+              <input type="number" id="prod-price" required min="0" step="100" placeholder="3500" class="w-full h-11 px-3.5 rounded-xl bg-bakery-cream border border-bakery-sand text-sm font-bold focus:outline-none focus:border-bakery-terracotta" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-bakery-mocha mb-1">Modal per Pcs / HPP (Rp)</label>
+              <input type="number" id="prod-cost" min="0" step="100" placeholder="2000" class="w-full h-11 px-3.5 rounded-xl bg-bakery-cream border border-bakery-sand text-sm font-bold focus:outline-none focus:border-bakery-terracotta" />
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-bakery-mocha mb-1">Stok Awal / Produksi Hari Ini (Pcs)</label>
+            <input type="number" id="prod-initial-stock" required min="0" placeholder="30" class="w-full h-11 px-3.5 rounded-xl bg-bakery-cream border border-bakery-sand text-sm font-extrabold text-bakery-terracotta focus:outline-none focus:border-bakery-terracotta" />
+          </div>
+
+          <div class="pt-2 flex items-center gap-2.5">
+            <button type="button" id="btn-delete-product" onclick="deleteCurrentProduct()" class="hidden min-h-[48px] px-4 rounded-2xl bg-rose-50 text-rose-700 font-bold text-xs border border-rose-200">Hapus</button>
+            <button type="submit" class="flex-1 min-h-[48px] rounded-2xl bg-bakery-terracotta text-white font-extrabold text-sm shadow-md btn-press">Simpan Menu Kue</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Modal 2: Add Expense -->
+    <div id="modal-expense" class="hidden fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-end sm:items-center justify-center">
+      <div class="w-full max-w-lg bg-white rounded-t-3xl sm:rounded-3xl p-5 space-y-4 animate-slide-up">
+        <div class="flex items-center justify-between border-b border-bakery-sand pb-3">
+          <h3 class="text-base font-extrabold text-bakery-espresso">Catat Pengeluaran / Belanja</h3>
+          <button onclick="closeModal('modal-expense')" class="w-9 h-9 rounded-full bg-bakery-cream flex items-center justify-center text-bakery-espresso font-bold">✕</button>
+        </div>
+
+        <form onsubmit="saveExpenseForm(event)" class="space-y-3">
+          <div>
+            <label class="block text-xs font-bold text-bakery-mocha mb-1">Nama Keperluan / Bahan *</label>
+            <input type="text" id="exp-name" required placeholder="Contoh: Tepung Terigu Segitiga 2kg" class="w-full h-11 px-3.5 rounded-xl bg-bakery-cream border border-bakery-sand text-sm font-semibold focus:outline-none focus:border-bakery-terracotta" />
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-bold text-bakery-mocha mb-1">Nominal (Rp) *</label>
+              <input type="number" id="exp-amount" required min="100" step="100" placeholder="28000" class="w-full h-11 px-3.5 rounded-xl bg-bakery-cream border border-bakery-sand text-sm font-extrabold text-rose-700 focus:outline-none focus:border-bakery-terracotta" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-bakery-mocha mb-1">Kategori</label>
+              <select id="exp-category" class="w-full h-11 px-3 rounded-xl bg-bakery-cream border border-bakery-sand text-sm font-semibold focus:outline-none focus:border-bakery-terracotta">
+                <option value="Bahan Baku">Bahan Baku</option>
+                <option value="Kemasan">Kemasan / Mika</option>
+                <option value="Operasional">Operasional (Gas/Listrik)</option>
+                <option value="Ongkir/Transport">Ongkir / Transport</option>
+                <option value="Lainnya">Lainnya</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-bakery-mocha mb-1">Catatan (Opsional)</label>
+            <input type="text" id="exp-note" placeholder="Toko bahan kue pasar pagi" class="w-full h-11 px-3.5 rounded-xl bg-bakery-cream border border-bakery-sand text-xs focus:outline-none focus:border-bakery-terracotta" />
+          </div>
+
+          <button type="submit" class="w-full min-h-[48px] rounded-2xl bg-rose-600 text-white font-extrabold text-sm shadow-md btn-press mt-2">Simpan Pengeluaran</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Modal 3: Set Daily Sales Target -->
+    <div id="modal-target" class="hidden fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-end sm:items-center justify-center">
+      <div class="w-full max-w-lg bg-white rounded-t-3xl sm:rounded-3xl p-5 space-y-4 animate-slide-up">
+        <div class="flex items-center justify-between border-b border-bakery-sand pb-3">
+          <h3 class="text-base font-extrabold text-bakery-espresso">Atur Target Omzet Harian</h3>
+          <button onclick="closeModal('modal-target')" class="w-9 h-9 rounded-full bg-bakery-cream flex items-center justify-center text-bakery-espresso font-bold">✕</button>
+        </div>
+        <form onsubmit="saveTargetForm(event)" class="space-y-3">
+          <div>
+            <label class="block text-xs font-bold text-bakery-mocha mb-1">Target Penjualan Per Hari (Rp)</label>
+            <input type="number" id="target-input-amount" required min="10000" step="10000" class="w-full h-12 px-4 rounded-xl bg-bakery-cream border border-bakery-sand text-lg font-extrabold text-bakery-terracotta focus:outline-none" />
+          </div>
+          <button type="submit" class="w-full min-h-[48px] rounded-2xl bg-bakery-terracotta text-white font-extrabold text-sm btn-press">Simpan Target</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Modal 4: Custom Confirmation Dialog (No browser confirm()) -->
+    <div id="modal-confirm" class="hidden fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+      <div class="w-full max-w-sm bg-white rounded-3xl p-5 space-y-4 animate-fade-in shadow-xl">
+        <h3 id="confirm-title" class="text-base font-extrabold text-bakery-espresso">Konfirmasi</h3>
+        <p id="confirm-message" class="text-xs text-bakery-mocha leading-relaxed">Apakah Anda yakin ingin melanjutkan tindakan ini?</p>
+        <div class="flex items-center gap-2.5 pt-1">
+          <button onclick="closeModal('modal-confirm')" class="flex-1 min-h-[44px] rounded-xl bg-bakery-latte text-bakery-espresso font-bold text-xs">Batal</button>
+          <button id="confirm-yes-btn" class="flex-1 min-h-[44px] rounded-xl bg-rose-600 text-white font-bold text-xs">Ya, Lanjutkan</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal 5: Smart PWA Install Guide (Android & iOS) -->
+    <div id="modal-install" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-end sm:items-center justify-center">
+      <div class="w-full max-w-lg bg-white rounded-t-3xl sm:rounded-3xl p-5 space-y-4 animate-slide-up max-h-[90vh] overflow-y-auto">
+        <div class="flex items-center justify-between border-b border-bakery-sand pb-3">
+          <div class="flex items-center gap-2.5">
+            <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-bakery-caramel to-bakery-terracotta text-white flex items-center justify-center shadow-xs">
+              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 21v-8a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8"/><path d="M4 16s.5-1 2-1 2.5 2 4 2 2.5-2 4-2 2.5 2 4 2 2-1 2-1"/><path d="M2 21h20"/></svg>
+            </div>
+            <div>
+              <h3 class="text-base font-extrabold text-bakery-espresso">Pasang KueKu di HP</h3>
+              <p class="text-[11px] text-bakery-mocha">Buka layar penuh tanpa bar browser & hemat kuota</p>
+            </div>
+          </div>
+          <button onclick="closeModal('modal-install')" class="w-9 h-9 rounded-full bg-bakery-cream flex items-center justify-center text-bakery-espresso font-bold">✕</button>
+        </div>
+
+        <!-- Direct Native Install Button (Visible when Chrome/Android beforeinstallprompt is captured) -->
+        <div id="native-install-box" class="hidden bg-emerald-50 border border-emerald-200 rounded-2xl p-3.5 space-y-2.5">
+          <p class="text-xs font-bold text-emerald-900">Perangkat Anda mendukung instalasi 1-klik:</p>
+          <button onclick="executeNativeInstall()" class="w-full min-h-[46px] rounded-xl bg-emerald-600 text-white font-extrabold text-sm shadow-sm btn-press">
+            Instal Aplikasi Sekarang
+          </button>
+        </div>
+
+        <!-- Platform Tabs for Step-by-Step Instructions -->
+        <div class="grid grid-cols-2 bg-bakery-latte p-1 rounded-xl border border-bakery-sand">
+          <button onclick="switchInstallGuideTab('ios')" id="guide-tab-ios" class="min-h-[38px] rounded-lg text-xs font-bold bg-white text-bakery-terracotta shadow-xs">iPhone / iPad (iOS)</button>
+          <button onclick="switchInstallGuideTab('android')" id="guide-tab-android" class="min-h-[38px] rounded-lg text-xs font-bold text-bakery-mocha">Android (Chrome)</button>
+        </div>
+
+        <!-- iOS Safari Steps -->
+        <div id="guide-content-ios" class="space-y-2.5 text-xs text-bakery-espresso bg-bakery-cream p-3.5 rounded-2xl border border-bakery-sand/70">
+          <div class="flex items-start gap-2.5">
+            <span class="w-6 h-6 rounded-full bg-bakery-terracotta text-white font-extrabold flex items-center justify-center shrink-0">1</span>
+            <p class="pt-0.5">Buka halaman ini menggunakan browser <strong>Safari</strong> di iPhone atau iPad.</p>
+          </div>
+          <div class="flex items-start gap-2.5">
+            <span class="w-6 h-6 rounded-full bg-bakery-terracotta text-white font-extrabold flex items-center justify-center shrink-0">2</span>
+            <p class="pt-0.5">Ketuk ikon <strong>Bagikan (Share)</strong> <span class="inline-flex items-center px-1.5 py-0.5 rounded bg-white border border-bakery-sand font-bold">⍗</span> di bagian bawah layar Safari.</p>
+          </div>
+          <div class="flex items-start gap-2.5">
+            <span class="w-6 h-6 rounded-full bg-bakery-terracotta text-white font-extrabold flex items-center justify-center shrink-0">3</span>
+            <p class="pt-0.5">Geser ke bawah dan pilih <strong>"Tambah ke Layar Utama" (Add to Home Screen)</strong>, lalu ketuk <strong>Tambah</strong>.</p>
+          </div>
+        </div>
+
+        <!-- Android Chrome Steps -->
+        <div id="guide-content-android" class="hidden space-y-2.5 text-xs text-bakery-espresso bg-bakery-cream p-3.5 rounded-2xl border border-bakery-sand/70">
+          <div class="flex items-start gap-2.5">
+            <span class="w-6 h-6 rounded-full bg-bakery-terracotta text-white font-extrabold flex items-center justify-center shrink-0">1</span>
+            <p class="pt-0.5">Buka halaman ini di browser <strong>Google Chrome</strong> Android.</p>
+          </div>
+          <div class="flex items-start gap-2.5">
+            <span class="w-6 h-6 rounded-full bg-bakery-terracotta text-white font-extrabold flex items-center justify-center shrink-0">2</span>
+            <p class="pt-0.5">Ketuk ikon <strong>Menu titik tiga (⋮)</strong> di pojok kanan atas browser.</p>
+          </div>
+          <div class="flex items-start gap-2.5">
+            <span class="w-6 h-6 rounded-full bg-bakery-terracotta text-white font-extrabold flex items-center justify-center shrink-0">3</span>
+            <p class="pt-0.5">Pilih <strong>"Instal Aplikasi"</strong> atau <strong>"Tambahkan ke Layar Utama"</strong>.</p>
+          </div>
+        </div>
+
+        <!-- Host / Standalone File Info -->
+        <div class="bg-bakery-latte/60 rounded-2xl p-3 border border-bakery-sand/70 flex items-center justify-between gap-2">
+          <p class="text-[11px] text-bakery-mocha leading-snug">Ingin menyimpan file aplikasi utuh ke HP atau upload ke GitHub Pages / Netlify?</p>
+          <button onclick="downloadStandaloneApp()" class="min-h-[38px] px-3 rounded-xl bg-white border border-bakery-sand text-bakery-terracotta font-extrabold text-[11px] shrink-0 btn-press">Unduh HTML</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal 6: Paste JSON Text Modal -->
+    <div id="modal-paste-json" class="hidden fixed inset-0 z-50 bg-black/55 backdrop-blur-xs flex items-end sm:items-center justify-center">
+      <div class="w-full max-w-lg bg-white rounded-t-3xl sm:rounded-3xl p-5 space-y-4 animate-slide-up">
+        <div class="flex items-center justify-between border-b border-bakery-sand pb-3">
+          <h3 class="text-base font-extrabold text-bakery-espresso">Tempel Teks Database JSON</h3>
+          <button onclick="closeModal('modal-paste-json')" class="w-9 h-9 rounded-full bg-bakery-cream flex items-center justify-center text-bakery-espresso font-bold">✕</button>
+        </div>
+        <div class="space-y-3">
+          <p class="text-xs text-bakery-mocha">Tempel teks backup JSON yang sebelumnya disalin dari WhatsApp atau catatan HP:</p>
+          <textarea id="paste-json-textarea" rows="6" placeholder='{"appName":"KueKu","products":[...],...}' class="w-full p-3 rounded-2xl bg-bakery-cream border border-bakery-sand text-xs font-mono focus:outline-none focus:border-bakery-terracotta"></textarea>
+          <button onclick="processPastedJSON()" class="w-full min-h-[48px] rounded-2xl bg-bakery-terracotta text-white font-extrabold text-sm shadow-md btn-press">
+            Periksa & Pratinjau Data
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal 7: Import Preview & Mode Selection (Merge vs Replace) -->
+    <div id="modal-import-preview" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-end sm:items-center justify-center">
+      <div class="w-full max-w-lg bg-white rounded-t-3xl sm:rounded-3xl p-5 space-y-4 animate-slide-up max-h-[92vh] overflow-y-auto">
+        <div class="flex items-center justify-between border-b border-bakery-sand pb-3">
+          <div>
+            <h3 class="text-base font-extrabold text-bakery-espresso">Pratinjau Import Database</h3>
+            <p class="text-[11px] text-bakery-mocha">Periksa ringkasan file & pilih cara penggabungan data</p>
+          </div>
+          <button onclick="closeModal('modal-import-preview')" class="w-9 h-9 rounded-full bg-bakery-cream flex items-center justify-center text-bakery-espresso font-bold">✕</button>
+        </div>
+
+        <!-- File Summary Card -->
+        <div class="bg-bakery-cream rounded-2xl p-3.5 border border-bakery-sand space-y-2 text-xs">
+          <div class="flex items-center justify-between">
+            <span class="text-bakery-mocha">Sumber / Toko:</span>
+            <span id="imp-prev-store" class="font-extrabold text-bakery-espresso">KueKu Catatan</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-bakery-mocha">Rentang Tanggal:</span>
+            <span id="imp-prev-daterange" class="font-bold text-bakery-espresso">-</span>
+          </div>
+          <div class="grid grid-cols-3 gap-2 pt-2 border-t border-bakery-sand/60 text-center">
+            <div class="bg-white rounded-xl p-2 border border-bakery-sand/50">
+              <span class="text-[10px] text-bakery-mocha block">Menu Kue</span>
+              <span id="imp-prev-products" class="text-sm font-extrabold text-bakery-terracotta">0</span>
+            </div>
+            <div class="bg-white rounded-xl p-2 border border-bakery-sand/50">
+              <span class="text-[10px] text-bakery-mocha block">Transaksi</span>
+              <span id="imp-prev-tx" class="text-sm font-extrabold text-emerald-700">0</span>
+            </div>
+            <div class="bg-white rounded-xl p-2 border border-bakery-sand/50">
+              <span class="text-[10px] text-bakery-mocha block">Pengeluaran</span>
+              <span id="imp-prev-exp" class="text-sm font-extrabold text-rose-700">0</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Import Mode Radio Cards -->
+        <div class="space-y-2.5">
+          <label class="block text-xs font-extrabold text-bakery-espresso">Pilih Mode Import:</label>
+
+          <label class="flex items-start gap-3 p-3.5 rounded-2xl border-2 border-emerald-600 bg-emerald-50/40 cursor-pointer" id="mode-card-merge">
+            <input type="radio" name="import-mode" value="merge" checked onchange="updateImportModeCards()" class="mt-1 accent-emerald-600 w-4 h-4" />
+            <div class="text-xs leading-snug">
+              <span class="font-extrabold text-emerald-900 block">Mode Gabung (Merge / Sinkronisasi Antar-HP)</span>
+              <span class="text-[11px] text-emerald-800 block mt-0.5">Menambahkan transaksi, pengeluaran & menu baru dari file tanpa menghapus catatan yang sudah ada di HP ini.</span>
+            </div>
+          </label>
+
+          <label class="flex items-start gap-3 p-3.5 rounded-2xl border border-bakery-sand bg-white cursor-pointer" id="mode-card-replace">
+            <input type="radio" name="import-mode" value="replace" onchange="updateImportModeCards()" class="mt-1 accent-bakery-terracotta w-4 h-4" />
+            <div class="text-xs leading-snug">
+              <span class="font-extrabold text-bakery-espresso block">Mode Timpa Semua (Replace / Restore Penuh)</span>
+              <span class="text-[11px] text-bakery-mocha block mt-0.5">Mengganti seluruh isi database HP ini dengan isi file backup (cocok untuk pindah HP baru).</span>
+            </div>
+          </label>
+        </div>
+
+        <div class="flex items-center gap-2.5 pt-1">
+          <button onclick="closeModal('modal-import-preview')" class="min-h-[48px] px-4 rounded-2xl bg-bakery-latte text-bakery-espresso font-bold text-xs">Batal</button>
+          <button onclick="executeDatabaseImport()" class="flex-1 min-h-[48px] rounded-2xl bg-emerald-600 text-white font-extrabold text-sm shadow-md btn-press">
+            Jalankan Import Sekarang
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast Notification Banner -->
+    <div id="toast-banner" class="pointer-events-none fixed top-16 left-1/2 -translate-x-1/2 z-50 opacity-0 transition-all duration-300">
+      <div class="bg-bakery-espresso text-white text-xs font-bold px-4 py-2.5 rounded-full shadow-lg flex items-center gap-2 border border-white/10">
+        <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+        <span id="toast-message">Berhasil disimpan</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ========================================== -->
+  <!-- JAVASCRIPT APPLICATION LOGIC               -->
+  <!-- ========================================== -->
+  <script>
+    // Storage Keys
+    const STORAGE_KEY = 'kueku_daily_bakery_v1';
+    const SNAPSHOT_KEY = 'kueku_pre_import_snapshot_v1';
+
+    // Application State
+    let appState = {
+      storeName: 'KueKu Catatan',
+      selectedDate: getTodayISO(),
+      dailyTarget: 500000,
+      isDemoData: true,
+      lastBackupAt: null,
+      changesSinceBackup: 0,
+      products: [], // Master list of cakes: { id, name, category, price, cost }
+      dailyData: {} // Keyed by YYYY-MM-DD: { stocks: { prodId: initialQty }, transactions: [], expenses: [] }
+    };
+
+    // Ephemeral UI State
+    let activeTab = 'dashboard';
+    let selectedCategoryFilter = 'Semua';
+    let cart = []; // [{ productId, name, price, cost, qty }]
+    let selectedPayMethod = 'Tunai';
+    let deferredInstallPrompt = null;
+    let pendingImportPayload = null;
+          navigator.vibrate(ms);
+        }
+      } catch (e) {}
+    }
+
+    // Dynamic PWA Setup: Generates PNG App Icon, Web App Manifest (Blob), & Inline Service Worker
+    function initStandalonePWA() {
+      try {
+        // 1. Render High-Res 512x512 Bakery App Icon on Canvas -> PNG Data URL (Required for iOS apple-touch-icon)
+        const iconCanvas = document.createElement('canvas');
+        iconCanvas.width = 512;
+        iconCanvas.height = 512;
+        const ctx = iconCanvas.getContext('2d');
+
+        // Warm Terracotta Gradient Background
+        const grad = ctx.createLinearGradient(0, 0, 512, 512);
+        grad.addColorStop(0, '#C87D55');
+        grad.addColorStop(1, '#8C3F1E');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, 512, 512);
+
+        // Decorative Cream Circle
+        ctx.fillStyle = '#FDF8F3';
+        ctx.beginPath();
+        ctx.arc(256, 256, 178, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Cake Illustration inside Icon
+        ctx.fillStyle = '#9C4A26';
+        ctx.beginPath();
+        ctx.roundRect(146, 240, 220, 105, 24);
+        ctx.fill();
+
+        // Cream Frosting Wave
+        ctx.fillStyle = '#E6B89C';
+        ctx.beginPath();
+        ctx.roundRect(146, 224, 220, 42, 18);
+        ctx.fill();
+
+        // Candle & Flame
+        ctx.fillStyle = '#3E2215';
+        ctx.fillRect(246, 162, 20, 62);
+        ctx.fillStyle = '#F59E0B';
+        ctx.beginPath();
+        ctx.arc(256, 142, 16, 0, Math.PI * 2);
+        ctx.fill();
+
+        const pngIconUrl = iconCanvas.toDataURL('image/png');
+        const appleIconEl = document.getElementById('dynamic-apple-icon');
+        const favIconEl = document.getElementById('dynamic-favicon');
+        if (appleIconEl) appleIconEl.href = pngIconUrl;
+        if (favIconEl) favIconEl.href = pngIconUrl;
+
+        // 2. Dynamic Web App Manifest via Blob URL
+        const manifestObj = {
+          name: 'KueKu - Catatan Jualan Kue Harian',
+          short_name: 'KueKu',
+          description: 'Aplikasi kasir cepat, stok kue harian, kasbon, dan laporan laba rugi UMKM.',
+          start_url: window.location.href,
+          display: 'standalone',
+          orientation: 'portrait',
+          background_color: '#FDF8F3',
+          theme_color: '#9C4A26',
+          icons: [
+            { src: pngIconUrl, sizes: '192x192', type: 'image/png', purpose: 'any maskable' },
+            { src: pngIconUrl, sizes: '512x512', type: 'image/png', purpose: 'any maskable' }
+          ]
+        };
+        const manifestBlob = new Blob([JSON.stringify(manifestObj)], { type: 'application/manifest+json' });
+        const manifestEl = document.getElementById('dynamic-manifest');
+        if (manifestEl) manifestEl.href = URL.createObjectURL(manifestBlob);
+
+        // 3. Inline Service Worker for Offline Caching (when served over HTTPS/localhost)
+        if ('serviceWorker' in navigator && (window.location.protocol === 'https:' || window.location.hostname === 'localhost')) {
+          const swCode = `
+            const CACHE_NAME = 'kueku-pwa-v1';
+            self.addEventListener('install', (e) => {
+              self.skipWaiting();
+              e.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll([self.location.href]).catch(() => {})));
+            });
+            self.addEventListener('activate', (e) => {
+              e.waitUntil(self.clients.claim());
+            });
+            self.addEventListener('fetch', (e) => {
+              if (e.request.method !== 'GET') return;
+              e.respondWith(
+                fetch(e.request).then((res) => {
+                  const copy = res.clone();
+                  caches.open(CACHE_NAME).then((c) => c.put(e.request, copy)).catch(() => {});
+                  return res;
+                }).catch(() => caches.match(e.request))
+              );
+            });
+          `;
+          const swBlob = new Blob([swCode], { type: 'application/javascript' });
+          navigator.serviceWorker.register(URL.createObjectURL(swBlob)).catch(() => {});
+        }
+      } catch (err) {
+        console.warn('PWA setup fallback:', err);
+      }
+
+      updateInstallButtonVisibility();
+    }
+
+    function isRunningStandalone() {
+      return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+    }
+
+    function updateInstallButtonVisibility() {
+      const headerBtn = document.getElementById('header-install-btn');
+      if (headerBtn && isRunningStandalone()) {
+        headerBtn.classList.add('hidden');
+      }
+    }
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredInstallPrompt = e;
+      const nativeBox = document.getElementById('native-install-box');
+      if (nativeBox) nativeBox.classList.remove('hidden');
+    });
+
+    window.addEventListener('appinstalled', () => {
+      deferredInstallPrompt = null;
+      updateInstallButtonVisibility();
+      closeModal('modal-install');
+      showToast('KueKu berhasil dipasang di layar utama!');
+    });
+
+    function triggerInstallApp() {
+      triggerHaptic(15);
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+      switchInstallGuideTab(isIOS ? 'ios' : 'android');
+      if (deferredInstallPrompt) {
+        document.getElementById('native-install-box').classList.remove('hidden');
+      }
+      openModal('modal-install');
+    }
+
+    async function executeNativeInstall() {
+      if (!deferredInstallPrompt) return;
+      deferredInstallPrompt.prompt();
+      const { outcome } = await deferredInstallPrompt.userChoice;
+      if (outcome === 'accepted') {
+        deferredInstallPrompt = null;
+        closeModal('modal-install');
+      }
+    }
+
+    function switchInstallGuideTab(platform) {
+      const iosTab = document.getElementById('guide-tab-ios');
+      const andTab = document.getElementById('guide-tab-android');
+      const iosContent = document.getElementById('guide-content-ios');
+      const andContent = document.getElementById('guide-content-android');
+
+      if (platform === 'ios') {
+        iosTab.className = 'min-h-[38px] rounded-lg text-xs font-bold bg-white text-bakery-terracotta shadow-xs';
+        andTab.className = 'min-h-[38px] rounded-lg text-xs font-bold text-bakery-mocha';
+        iosContent.classList.remove('hidden');
+        andContent.classList.add('hidden');
+      } else {
+        andTab.className = 'min-h-[38px] rounded-lg text-xs font-bold bg-white text-bakery-terracotta shadow-xs';
+        iosTab.className = 'min-h-[38px] rounded-lg text-xs font-bold text-bakery-mocha';
+        andContent.classList.remove('hidden');
+        iosContent.classList.add('hidden');
+      }
+    }
+
+    // Download Complete Self-Contained HTML File for Mobile / Hosting
+    function downloadStandaloneApp() {
+      triggerHaptic(15);
+      const docHTML = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+      const blob = new Blob([docHTML], { type: 'text/html;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'KueKu-Catatan-Jualan.html';
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('File aplikasi KueKu.html berhasil diunduh!');
+    }
+
+    function updateNetworkBadge() {
+      const textEl = document.getElementById('offline-status-text');
+      if (!textEl) return;
+      textEl.textContent = navigator.onLine ? 'Offline Ready' : 'Mode Offline';
+    }
+
+    // Utility: Date Helpers (Local Timezone)
+    function getTodayISO(offsetDays = 0) {
+      const d = new Date();
+      d.setDate(d.getDate() + offsetDays);
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+
+    function formatRupiah(num) {
+      const val = Math.round(Number(num) || 0);
+      return 'Rp ' + val.toLocaleString('id-ID');
+    }
+
+    function formatIndonesianDate(isoStr) {
+      const [y, m, d] = isoStr.split('-').map(Number);
+      const dateObj = new Date(y, m - 1, d);
+      const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+      return `${days[dateObj.getDay()]}, ${d} ${months[m - 1]} ${y}`;
+    }
+
+    // Default Sample Bakery Menu & Demo Data
+    function createDefaultProducts() {
+      return [
+        { id: 'p1', name: 'Risoles Mayo Smoked Beef', category: 'Gorengan', price: 4000, cost: 2200 },
+        { id: 'p2', name: 'Lemper Ayam Spesial', category: 'Kue Basah', price: 3500, cost: 1800 },
+        { id: 'p3', name: 'Donat Kentang Gula Halus', category: 'Bolu/Cake', price: 3000, cost: 1400 },
+        { id: 'p4', name: 'Brownies Kukus Cokelat', category: 'Bolu/Cake', price: 5000, cost: 2600 },
+        { id: 'p5', name: 'Pastel Sayur & Telur', category: 'Gorengan', price: 3500, cost: 1700 },
+        { id: 'p6', name: 'Kue Lapis Legit Pandan', category: 'Kue Basah', price: 3000, cost: 1500 },
+        { id: 'p7', name: 'Nastar Nanas Toples Kecil', category: 'Kue Kering', price: 25000, cost: 14000 }
+      ];
+    }
+
+    function seedInitialDemoData() {
+      const today = getTodayISO(0);
+      const yesterday = getTodayISO(-1);
+      const twoDaysAgo = getTodayISO(-2);
+
+      appState.storeName = 'KueKu Catatan';
+      appState.products = createDefaultProducts();
+      appState.dailyTarget = 500000;
+      appState.isDemoData = true;
+      appState.lastBackupAt = null;
+      appState.changesSinceBackup = 0;
+      appState.dailyData = {
+        [today]: {
+          stocks: { p1: 35, p2: 30, p3: 40, p4: 20, p5: 30, p6: 25, p7: 8 },
+          transactions: [
+            {
+              id: 'tx_101',
+              time: '07:45',
+              customer: 'Ibu Sari',
+              method: 'Tunai',
+              status: 'Lunas',
+              note: 'Untuk arisan pagi',
+              items: [
+                { productId: 'p1', name: 'Risoles Mayo Smoked Beef', price: 4000, cost: 2200, qty: 10 },
+                { productId: 'p2', name: 'Lemper Ayam Spesial', price: 3500, cost: 1800, qty: 10 }
+              ]
+            },
+            {
+              id: 'tx_102',
+              time: '09:15',
+              customer: 'Mas Dimas',
+              method: 'QRIS',
+              status: 'Lunas',
+              note: '',
+              items: [
+                { productId: 'p3', name: 'Donat Kentang Gula Halus', price: 3000, cost: 1400, qty: 6 },
+                { productId: 'p4', name: 'Brownies Kukus Cokelat', price: 5000, cost: 2600, qty: 4 }
+              ]
+            },
+            {
+              id: 'tx_103',
+              time: '10:30',
+              customer: 'Bu Rina Tetangga',
+              method: 'Tunai',
+              status: 'Kasbon',
+              note: 'Bayar sore nanti',
+              items: [
+                { productId: 'p7', name: 'Nastar Nanas Toples Kecil', price: 25000, cost: 14000, qty: 2 },
+                { productId: 'p5', name: 'Pastel Sayur & Telur', price: 3500, cost: 1700, qty: 5 }
+              ]
+            }
+          ],
+          expenses: [
+            { id: 'exp_1', time: '05:30', name: 'Minyak Goreng 2L & Mayones', category: 'Bahan Baku', amount: 48000, note: 'Belanja subuh' },
+            { id: 'exp_2', time: '06:10', name: 'Plastik Mika Kue 1 Pack', category: 'Kemasan', amount: 18000, note: '' }
+          ]
+        },
+        [yesterday]: {
+          stocks: { p1: 30, p2: 25, p3: 35, p4: 20, p5: 25, p6: 20, p7: 6 },
+          transactions: [
+            {
+              id: 'tx_099',
+              time: '08:30',
+              customer: 'Kantor Kelurahan',
+              method: 'Transfer',
+              status: 'Lunas',
+              note: 'Snack rapat',
+              items: [
+                { productId: 'p1', name: 'Risoles Mayo Smoked Beef', price: 4000, cost: 2200, qty: 25 },
+                { productId: 'p2', name: 'Lemper Ayam Spesial', price: 3500, cost: 1800, qty: 20 },
+                { productId: 'p4', name: 'Brownies Kukus Cokelat', price: 5000, cost: 2600, qty: 15 }
+              ]
+            }
+          ],
+          expenses: [
+            { id: 'exp_09', time: '06:00', name: 'Ayam Suwir & Terigu', category: 'Bahan Baku', amount: 85000, note: '' }
+          ]
+        },
+        [twoDaysAgo]: {
+          stocks: { p1: 25, p2: 25, p3: 30, p4: 15, p5: 20, p6: 20, p7: 5 },
+          transactions: [
+            {
+              id: 'tx_088',
+              time: '09:00',
+              customer: 'Pelanggan Umum',
+              method: 'Tunai',
+              status: 'Lunas',
+              note: '',
+              items: [
+                { productId: 'p3', name: 'Donat Kentang Gula Halus', price: 3000, cost: 1400, qty: 22 },
+                { productId: 'p5', name: 'Pastel Sayur & Telur', price: 3500, cost: 1700, qty: 18 },
+                { productId: 'p6', name: 'Kue Lapis Legit Pandan', price: 3000, cost: 1500, qty: 15 }
+              ]
+            }
+      saveState(false);
+    }
+
+    // Load & Save State in LocalStorage
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          appState = {
+            storeName: parsed.storeName || 'KueKu Catatan',
+            selectedDate: getTodayISO(0),
+            dailyTarget: parsed.dailyTarget || 500000,
+            isDemoData: Boolean(parsed.isDemoData),
+            lastBackupAt: parsed.lastBackupAt || null,
+            changesSinceBackup: Number(parsed.changesSinceBackup) || 0,
+            products: Array.isArray(parsed.products) ? parsed.products : createDefaultProducts(),
+            dailyData: parsed.dailyData || {}
+          };
+        } else {
+          seedInitialDemoData();
+        }
+      } catch (err) {
+        console.error('Gagal memuat LocalStorage:', err);
+        seedInitialDemoData();
+      }
+      ensureDayRecord(appState.selectedDate);
+    }
+
+    function saveState(trackMutation = true) {
+      try {
+        if (trackMutation && !appState.isDemoData) {
+          appState.changesSinceBackup = (Number(appState.changesSinceBackup) || 0) + 1;
+        }
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+      } catch (err) {
+        showToast('Gagal menyimpan ke memori HP');
+      }
+    }
+
+    function ensureDayRecord(dateStr) {
+      if (!appState.dailyData[dateStr]) {
+        appState.dailyData[dateStr] = {
+          stocks: {},
+          transactions: [],
+          expenses: []
+        };
+      }
+      if (!appState.dailyData[dateStr].stocks) appState.dailyData[dateStr].stocks = {};
+      if (!appState.dailyData[dateStr].transactions) appState.dailyData[dateStr].transactions = [];
+      if (!appState.dailyData[dateStr].expenses) appState.dailyData[dateStr].expenses = [];
+    }
+
+    // Compute Daily Metrics & Sold Quantities per Product
+    function getDaySummary(dateStr) {
+      ensureDayRecord(dateStr);
+      const day = appState.dailyData[dateStr];
+      const soldMap = {}; // prodId -> qty sold
+      let omzet = 0;
+      let hppSold = 0;
+      let payTunai = 0;
+      let payQris = 0;
+      let payTransfer = 0;
+      let kasbonTotal = 0;
+
+      day.transactions.forEach(tx => {
+        let txTotal = 0;
+        tx.items.forEach(item => {
+          const lineTotal = item.price * item.qty;
+          const lineCost = (item.cost || 0) * item.qty;
+          txTotal += lineTotal;
+          hppSold += lineCost;
+          soldMap[item.productId] = (soldMap[item.productId] || 0) + item.qty;
+        });
+        omzet += txTotal;
+
+        if (tx.status === 'Kasbon') {
+          kasbonTotal += txTotal;
+        } else {
+          if (tx.method === 'Tunai') payTunai += txTotal;
+          else if (tx.method === 'QRIS') payQris += txTotal;
+          else if (tx.method === 'Transfer') payTransfer += txTotal;
+        }
+      });
+
+      const expenseTotal = day.expenses.reduce((sum, exp) => sum + (Number(exp.amount) || 0), 0);
+      // Net Profit: Omzet minus actual recorded expenses (or HPP if no expenses recorded, we show Omzet - Expense clearly)
+      const netProfit = omzet - expenseTotal;
+
+      let totalInitialPcs = 0;
+      let totalSoldPcs = 0;
+      let totalRemainingPcs = 0;
+
+      const productStats = appState.products.map(prod => {
+        const initial = Number(day.stocks[prod.id]) || 0;
+        const sold = soldMap[prod.id] || 0;
+        const remaining = Math.max(0, initial - sold);
+        totalInitialPcs += initial;
+        totalSoldPcs += sold;
+        totalRemainingPcs += remaining;
+        return {
+          ...prod,
+          initial,
+          sold,
+          remaining,
+          revenue: sold * prod.price
+        };
+      });
+
+      return {
+        omzet,
+        hppSold,
+        expenseTotal,
+        netProfit,
+        payTunai,
+        payQris,
+        payTransfer,
+        kasbonTotal,
+        txCount: day.transactions.length,
+        expenseCount: day.expenses.length,
+        totalInitialPcs,
+        totalSoldPcs,
+        totalRemainingPcs,
+        productStats,
+        transactions: day.transactions,
+        expenses: day.expenses
+      };
+    }
+
+    // Date Controls
+    function setSelectedDate(newDate) {
+      if (!newDate) return;
+      appState.selectedDate = newDate;
+      ensureDayRecord(newDate);
+      cart = []; // Reset cart when switching day to avoid stock mismatch
+      renderAll();
+    }
+
+    function shiftDate(deltaDays) {
+      const [y, m, d] = appState.selectedDate.split('-').map(Number);
+      const dt = new Date(y, m - 1, d);
+      dt.setDate(dt.getDate() + deltaDays);
+      const nextISO = `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}-${String(dt.getDate()).padStart(2, '0')}`;
+      setSelectedDate(nextISO);
+    }
+
+    function selectRelativeDate(offset) {
+      setSelectedDate(getTodayISO(offset));
+    }
+
+    function updateDateHeaderUI() {
+      const today = getTodayISO(0);
+      const yesterday = getTodayISO(-1);
+      const cur = appState.selectedDate;
+
+      document.getElementById('date-picker-input').value = cur;
+      document.getElementById('full-date-text').textContent = formatIndonesianDate(cur);
+
+      const labelEl = document.getElementById('display-date-label');
+      const pillToday = document.getElementById('pill-today');
+      const pillYesterday = document.getElementById('pill-yesterday');
+
+      if (cur === today) {
+        labelEl.textContent = 'Hari Ini';
+        pillToday.className = 'px-2.5 py-1 rounded-full font-semibold transition-colors bg-bakery-terracotta text-white';
+        pillYesterday.className = 'px-2.5 py-1 rounded-full font-semibold transition-colors bg-bakery-latte text-bakery-mocha';
+      } else if (cur === yesterday) {
+        labelEl.textContent = 'Kemarin';
+        pillYesterday.className = 'px-2.5 py-1 rounded-full font-semibold transition-colors bg-bakery-terracotta text-white';
+        pillToday.className = 'px-2.5 py-1 rounded-full font-semibold transition-colors bg-bakery-latte text-bakery-mocha';
+      } else {
+        const [, m, d] = cur.split('-');
+        labelEl.textContent = `${d}/${m}`;
+        pillToday.className = 'px-2.5 py-1 rounded-full font-semibold transition-colors bg-bakery-latte text-bakery-mocha';
+        pillYesterday.className = 'px-2.5 py-1 rounded-full font-semibold transition-colors bg-bakery-latte text-bakery-mocha';
+      }
+    }
+
+    // Navigation Tab Switcher
+    function switchTab(tabName) {
+      activeTab = tabName;
+      ['dashboard', 'stok', 'kasir', 'belanja', 'laporan'].forEach(t => {
+        const sec = document.getElementById(`view-${t}`);
+        if (sec) sec.classList.toggle('hidden', t !== tabName);
+      });
+
+      document.querySelectorAll('.nav-item').forEach(btn => {
+        const isCurrent = btn.getAttribute('data-nav') === tabName;
+        btn.className = isCurrent
+          ? 'nav-item min-h-[52px] flex flex-col items-center justify-center rounded-2xl text-bakery-terracotta bg-bakery-latte/80 transition-colors'
+          : 'nav-item min-h-[52px] flex flex-col items-center justify-center rounded-2xl text-bakery-mocha hover:bg-bakery-cream transition-colors';
+      });
+
+      renderAll();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // ==========================================
+    // RENDER: TAB 1 DASHBOARD
+    // ==========================================
+    function renderDashboard() {
+      updateBackupReminderUI();
+
+      const demoBanner = document.getElementById('demo-data-banner');
+      if (demoBanner) {
+        demoBanner.classList.toggle('hidden', !appState.isDemoData);
+      }
+
+      const summary = getDaySummary(appState.selectedDate);
+
+      // Profit & Margin
+      const profitEl = document.getElementById('dash-net-profit');
+      profitEl.textContent = formatRupiah(summary.netProfit);
+      profitEl.className = summary.netProfit < 0
+        ? 'text-3xl font-extrabold tracking-tight text-rose-200'
+        : 'text-3xl font-extrabold tracking-tight text-white';
+
+      const margin = summary.omzet > 0 ? Math.round((summary.netProfit / summary.omzet) * 100) : 0;
+      document.getElementById('dash-margin-badge').textContent = `Margin ${margin}%`;
+
+      // Target Progress
+      const target = appState.dailyTarget || 500000;
+      const pct = Math.min(100, Math.round((summary.omzet / target) * 100));
+      document.getElementById('dash-target-text').textContent = `${formatRupiah(summary.omzet)} / ${formatRupiah(target)}`;
+      document.getElementById('dash-target-bar').style.width = `${pct}%`;
+
+      // 2x2 Grid
+      document.getElementById('dash-omzet').textContent = formatRupiah(summary.omzet);
+      document.getElementById('dash-tx-count').textContent = `${summary.txCount} transaksi`;
+
+      document.getElementById('dash-expense').textContent = formatRupiah(summary.expenseTotal);
+      document.getElementById('dash-expense-count').textContent = `${summary.expenseCount} catatan belanja`;
+
+      document.getElementById('dash-sold-pcs').textContent = `${summary.totalSoldPcs} pcs`;
+      document.getElementById('dash-hpp-total').textContent = `HPP Terjual: ${formatRupiah(summary.hppSold)}`;
+
+      document.getElementById('dash-remaining-pcs').textContent = `${summary.totalRemainingPcs} pcs`;
+      document.getElementById('dash-initial-pcs').textContent = `Dari ${summary.totalInitialPcs} pcs produksi`;
+
+      // Payment Methods
+      document.getElementById('dash-pay-tunai').textContent = formatRupiah(summary.payTunai);
+      document.getElementById('dash-pay-qris').textContent = formatRupiah(summary.payQris);
+      document.getElementById('dash-pay-transfer').textContent = formatRupiah(summary.payTransfer);
+
+      const kasbonPill = document.getElementById('dash-kasbon-pill');
+      if (summary.kasbonTotal > 0) {
+        kasbonPill.classList.remove('hidden');
+        kasbonPill.textContent = `Kasbon: ${formatRupiah(summary.kasbonTotal)}`;
+      } else {
+        kasbonPill.classList.add('hidden');
+      }
+
+      // Top Products List
+      const topContainer = document.getElementById('dash-top-products');
+      const sorted = [...summary.productStats].sort((a, b) => b.sold - a.sold).slice(0, 4);
+
+      if (sorted.length === 0 || sorted[0].sold === 0) {
+        topContainer.innerHTML = `<p class="text-xs text-bakery-mocha text-center py-3">Belum ada kue terjual pada tanggal ini.</p>`;
+      } else {
+        topContainer.innerHTML = sorted.filter(p => p.sold > 0).map((p, idx) => `
+          <div class="flex items-center justify-between py-1.5 border-b border-bakery-sand/40 last:border-none">
+            <div class="flex items-center gap-2.5 min-w-0">
+              <span class="w-6 h-6 rounded-lg bg-bakery-latte text-bakery-terracotta font-extrabold text-xs flex items-center justify-center shrink-0">${idx + 1}</span>
+              <div class="truncate">
+                <p class="text-xs font-bold text-bakery-espresso truncate">${escapeHTML(p.name)}</p>
+                <p class="text-[11px] text-bakery-mocha">Terjual ${p.sold} pcs • Sisa ${p.remaining}</p>
+              </div>
+            </div>
+            <span class="text-xs font-extrabold text-emerald-700 shrink-0">${formatRupiah(p.revenue)}</span>
+          </div>
+        `).join('');
+      }
+    }
+
+    // ==========================================
+    // RENDER & LOGIC: TAB 2 STOK & PRODUK
+    // ==========================================
+    function renderStokView() {
+      const summary = getDaySummary(appState.selectedDate);
+      const searchVal = (document.getElementById('stok-search-input').value || '').toLowerCase().trim();
+
+      // Category Pills
+      const categories = ['Semua', 'Kue Basah', 'Gorengan', 'Bolu/Cake', 'Kue Kering', 'Minuman'];
+      document.getElementById('stok-category-pills').innerHTML = categories.map(cat => {
+        const active = selectedCategoryFilter === cat;
+        return `<button onclick="setCategoryFilter('${cat}')" class="px-3 py-1.5 rounded-full text-xs font-bold shrink-0 transition-colors ${active ? 'bg-bakery-terracotta text-white' : 'bg-white border border-bakery-sand text-bakery-mocha'}">${cat}</button>`;
+      }).join('');
+
+      const filtered = summary.productStats.filter(p => {
+        const matchCat = selectedCategoryFilter === 'Semua' || p.category === selectedCategoryFilter;
+        const matchSearch = p.name.toLowerCase().includes(searchVal);
+        return matchCat && matchSearch;
+      });
+
+      const listEl = document.getElementById('stok-product-list');
+      if (filtered.length === 0) {
+        listEl.innerHTML = `
+          <div class="bg-white rounded-2xl p-6 text-center border border-bakery-sand">
+            <p class="text-sm font-bold text-bakery-espresso">Tidak ada menu kue ditemukan</p>
+            <p class="text-xs text-bakery-mocha mt-1">Ketuk tombol "+ Menu Baru" untuk menambahkan kue jualan Anda.</p>
+          </div>`;
+        return;
+      }
+
+      listEl.innerHTML = filtered.map(p => {
+        const stockPct = p.initial > 0 ? Math.min(100, Math.round((p.remaining / p.initial) * 100)) : 0;
+        const isOut = p.initial > 0 && p.remaining === 0;
+        return `
+          <div class="bg-white rounded-2xl p-3.5 border border-bakery-sand/80 shadow-xs space-y-3">
+            <div class="flex items-start justify-between gap-2">
+              <div class="min-w-0">
+                <div class="flex items-center gap-1.5">
+                  <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-bakery-latte text-bakery-terracotta">${escapeHTML(p.category)}</span>
+                  ${isOut ? '<span class="text-[10px] font-extrabold px-2 py-0.5 rounded-md bg-rose-100 text-rose-700">HABIS</span>' : ''}
+                </div>
+                <h3 class="text-sm font-extrabold text-bakery-espresso mt-1 truncate">${escapeHTML(p.name)}</h3>
+                <p class="text-xs font-bold text-emerald-700">${formatRupiah(p.price)} <span class="text-[11px] font-normal text-bakery-mocha">/ pcs (HPP: ${formatRupiah(p.cost)})</span></p>
+              </div>
+              <button onclick="openProductModal('${p.id}')" class="w-9 h-9 rounded-xl bg-bakery-cream border border-bakery-sand flex items-center justify-center text-bakery-mocha hover:text-bakery-espresso shrink-0 btn-press" aria-label="Edit Menu">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              </button>
+            </div>
+
+            <!-- Stock Counters Bar -->
+            <div class="grid grid-cols-3 gap-2 bg-bakery-cream rounded-xl p-2 text-center border border-bakery-sand/50">
+              <div>
+                <span class="text-[10px] font-semibold text-bakery-mocha block">Stok Awal</span>
+                <div class="flex items-center justify-center gap-1 mt-0.5">
+                  <button onclick="adjustInitialStock('${p.id}', -1)" class="w-6 h-6 rounded-lg bg-white border border-bakery-sand text-xs font-extrabold">-</button>
+                  <span class="text-xs font-extrabold text-bakery-espresso w-6">${p.initial}</span>
+                  <button onclick="adjustInitialStock('${p.id}', 1)" class="w-6 h-6 rounded-lg bg-white border border-bakery-sand text-xs font-extrabold">+</button>
+                </div>
+              </div>
+              <div class="border-x border-bakery-sand/60">
+                <span class="text-[10px] font-semibold text-bakery-mocha block">Terjual</span>
+                <span class="text-sm font-extrabold text-emerald-700 mt-0.5 block">${p.sold}</span>
+              </div>
+              <div>
+                <span class="text-[10px] font-semibold text-bakery-mocha block">Sisa</span>
+                <span class="text-sm font-extrabold ${p.remaining === 0 ? 'text-rose-600' : 'text-bakery-terracotta'} mt-0.5 block">${p.remaining}</span>
+              </div>
+            </div>
+
+            <!-- Instant Quick Sell Buttons (+/-) -->
+            <div class="flex items-center justify-between gap-2 pt-0.5">
+              <span class="text-[11px] font-semibold text-bakery-mocha">Jual Cepat (1 Pcs):</span>
+              <div class="flex items-center gap-2">
+                <button onclick="quickUndoOneSale('${p.id}')" class="min-h-[40px] px-3 rounded-xl bg-bakery-latte text-bakery-espresso font-extrabold text-xs btn-press" title="Kurangi 1 penjualan cepat">- 1</button>
+                <button onclick="quickSellOne('${p.id}')" class="min-h-[40px] px-4 rounded-xl bg-emerald-600 text-white font-extrabold text-xs shadow-xs btn-press flex items-center gap-1">
+                  <span>+1 Terjual</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function setCategoryFilter(cat) {
+      selectedCategoryFilter = cat;
+      renderStokView();
+    }
+
+    function adjustInitialStock(prodId, delta) {
+      ensureDayRecord(appState.selectedDate);
+      const cur = Number(appState.dailyData[appState.selectedDate].stocks[prodId]) || 0;
+      appState.dailyData[appState.selectedDate].stocks[prodId] = Math.max(0, cur + delta);
+      saveState();
+      renderAll();
+    }
+
+    // Instant 1-tap sale from Stok card (creates/appends to a "Penjualan Cepat" transaction)
+    function quickSellOne(prodId) {
+      triggerHaptic(14);
+      const prod = appState.products.find(p => p.id === prodId);
+      if (!prod) return;
+
+      ensureDayRecord(appState.selectedDate);
+      const day = appState.dailyData[appState.selectedDate];
+      const nowTime = new Date().toTimeString().slice(0, 5);
+
+      // Look for an existing "Penjualan Cepat" transaction today to keep history clean, or create one
+      let quickTx = day.transactions.find(t => t.isQuickSale === true && t.status === 'Lunas');
+      if (!quickTx) {
+        quickTx = {
+          id: 'tx_quick_' + Date.now(),
+          time: nowTime,
+          customer: 'Jual Cepat (Eceran)',
+          method: 'Tunai',
+          status: 'Lunas',
+          note: 'Dicatat dari tombol cepat stok',
+          isQuickSale: true,
+          items: []
+        };
+        day.transactions.unshift(quickTx);
+      } else {
+        quickTx.time = nowTime;
+      }
+
+      const existingItem = quickTx.items.find(i => i.productId === prodId);
+      if (existingItem) {
+        existingItem.qty += 1;
+      } else {
+        quickTx.items.push({
+          productId: prod.id,
+          name: prod.name,
+          price: prod.price,
+          cost: prod.cost || 0,
+          qty: 1
+        });
+      }
+
+      saveState();
+      renderAll();
+      showToast(`+1 ${prod.name} terjual!`);
+    }
+
+    function quickUndoOneSale(prodId) {
+      ensureDayRecord(appState.selectedDate);
+      const day = appState.dailyData[appState.selectedDate];
+      // Find latest transaction containing this product
+      for (let i = 0; i < day.transactions.length; i++) {
+        const tx = day.transactions[i];
+        const itemIdx = tx.items.findIndex(it => it.productId === prodId);
+        if (itemIdx !== -1) {
+          if (tx.items[itemIdx].qty > 1) {
+            tx.items[itemIdx].qty -= 1;
+          } else {
+            tx.items.splice(itemIdx, 1);
+          }
+          if (tx.items.length === 0) {
+            day.transactions.splice(i, 1);
+          }
+          saveState();
+          renderAll();
+          showToast('1 penjualan dikurangi');
+          return;
+        }
+      }
+      showToast('Belum ada penjualan kue ini hari ini');
+    }
+
+    function copyYesterdayStock() {
+      const [y, m, d] = appState.selectedDate.split('-').map(Number);
+      const dt = new Date(y, m - 1, d);
+      dt.setDate(dt.getDate() - 1);
+      const prevISO = `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}-${String(dt.getDate()).padStart(2, '0')}`;
+
+      const prevDay = appState.dailyData[prevISO];
+      if (!prevDay || !prevDay.stocks || Object.keys(prevDay.stocks).length === 0) {
+        showToast('Data stok kemarin kosong');
+        return;
+      }
+
+      ensureDayRecord(appState.selectedDate);
+      appState.dailyData[appState.selectedDate].stocks = { ...prevDay.stocks };
+      saveState();
+      renderAll();
+      showToast('Stok awal kemarin berhasil disalin!');
+    }
+
+    // ==========================================
+    // RENDER & LOGIC: TAB 3 KASIR & TRANSAKSI
+    // ==========================================
+    function setKasirSubTab(mode) {
+      const posPanel = document.getElementById('kasir-pos-panel');
+      const histPanel = document.getElementById('kasir-history-panel');
+      const posBtn = document.getElementById('subtab-pos-btn');
+      const histBtn = document.getElementById('subtab-history-btn');
+
+      if (mode === 'pos') {
+        posPanel.classList.remove('hidden');
+        histPanel.classList.add('hidden');
+        posBtn.className = 'min-h-[42px] rounded-xl text-xs font-bold transition-all bg-white text-bakery-terracotta shadow-xs';
+        histBtn.className = 'min-h-[42px] rounded-xl text-xs font-bold transition-all text-bakery-mocha';
+      } else {
+        posPanel.classList.add('hidden');
+        histPanel.classList.remove('hidden');
+        histBtn.className = 'min-h-[42px] rounded-xl text-xs font-bold transition-all bg-white text-bakery-terracotta shadow-xs';
+        posBtn.className = 'min-h-[42px] rounded-xl text-xs font-bold transition-all text-bakery-mocha';
+        renderTransactionHistory();
+      }
+    }
+
+    function renderKasirView() {
+      const summary = getDaySummary(appState.selectedDate);
+      document.getElementById('kasir-history-badge').textContent = summary.txCount;
+
+      // POS Product Grid
+      const gridEl = document.getElementById('pos-product-grid');
+      gridEl.innerHTML = summary.productStats.map(p => {
+        const inCart = cart.find(c => c.productId === p.id);
+        const qtyInCart = inCart ? inCart.qty : 0;
+        return `
+          <button onclick="addToCart('${p.id}')" class="text-left bg-white rounded-2xl p-3 border ${qtyInCart > 0 ? 'border-bakery-terracotta ring-1 ring-bakery-terracotta' : 'border-bakery-sand/80'} shadow-xs btn-press relative flex flex-col justify-between min-h-[88px]">
+            ${qtyInCart > 0 ? `<span class="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-bakery-terracotta text-white text-xs font-extrabold flex items-center justify-center shadow-sm">${qtyInCart}</span>` : ''}
+            <div>
+              <span class="text-[10px] font-bold text-bakery-mocha">${escapeHTML(p.category)}</span>
+              <h4 class="text-xs font-extrabold text-bakery-espresso line-clamp-2 leading-snug mt-0.5">${escapeHTML(p.name)}</h4>
+            </div>
+            <div class="flex items-center justify-between mt-2 pt-1.5 border-t border-bakery-sand/40">
+              <span class="text-xs font-extrabold text-emerald-700">${formatRupiah(p.price)}</span>
+              <span class="text-[10px] font-semibold text-bakery-mocha">Sisa: ${p.remaining}</span>
+            </div>
+          </button>
+        `;
+      }).join('');
+
+      renderCartUI();
+      renderTransactionHistory();
+    }
+
+    function addToCart(prodId) {
+      triggerHaptic(10);
+      const prod = appState.products.find(p => p.id === prodId);
+      if (!prod) return;
+      const existing = cart.find(c => c.productId === prodId);
+      if (existing) {
+        existing.qty += 1;
+      } else {
+        cart.push({
+          productId: prod.id,
+          name: prod.name,
+          price: prod.price,
+          cost: prod.cost || 0,
+          qty: 1
+        });
+      }
+      renderKasirView();
+    }
+
+    function updateCartQty(prodId, delta) {
+      const idx = cart.findIndex(c => c.productId === prodId);
+      if (idx === -1) return;
+      cart[idx].qty += delta;
+      if (cart[idx].qty <= 0) {
+        cart.splice(idx, 1);
+      }
+      renderKasirView();
+    }
+
+    function clearCart() {
+      cart = [];
+      renderKasirView();
+    }
+
+    function selectPaymentMethod(method) {
+      selectedPayMethod = method;
+      document.querySelectorAll('.pay-method-btn').forEach(btn => {
+        const active = btn.getAttribute('data-pay') === method;
+        btn.className = active
+          ? 'pay-method-btn min-h-[40px] rounded-xl border-2 border-bakery-terracotta bg-bakery-terracotta/10 text-bakery-terracotta text-xs font-bold'
+          : 'pay-method-btn min-h-[40px] rounded-xl border border-bakery-sand bg-bakery-cream text-bakery-mocha text-xs font-bold';
+      });
+    }
+
+    function renderCartUI() {
+      const container = document.getElementById('cart-items-container');
+      const totalQtyEl = document.getElementById('cart-total-qty');
+      const grandTotalEl = document.getElementById('cart-grand-total');
+      const navDot = document.getElementById('nav-cart-dot');
+
+      const totalQty = cart.reduce((s, c) => s + c.qty, 0);
+      const grandTotal = cart.reduce((s, c) => s + c.price * c.qty, 0);
+
+      totalQtyEl.textContent = totalQty;
+      grandTotalEl.textContent = formatRupiah(grandTotal);
+      navDot.classList.toggle('hidden', totalQty === 0);
+
+      if (cart.length === 0) {
+        container.innerHTML = `<p class="text-xs text-center text-bakery-mocha py-4">Ketuk menu kue di atas untuk menambahkan ke keranjang</p>`;
+        return;
+      }
+
+      container.innerHTML = cart.map(item => `
+        <div class="flex items-center justify-between gap-2 bg-bakery-cream rounded-xl p-2.5 border border-bakery-sand/60">
+          <div class="min-w-0 flex-1">
+            <p class="text-xs font-bold text-bakery-espresso truncate">${escapeHTML(item.name)}</p>
+            <p class="text-[11px] font-semibold text-bakery-mocha">${formatRupiah(item.price)} × ${item.qty} = <span class="text-emerald-700 font-bold">${formatRupiah(item.price * item.qty)}</span></p>
+          </div>
+          <div class="flex items-center gap-1.5 shrink-0">
+            <button onclick="updateCartQty('${item.productId}', -1)" class="w-8 h-8 rounded-lg bg-white border border-bakery-sand font-extrabold text-sm btn-press">-</button>
+            <span class="w-6 text-center text-xs font-extrabold">${item.qty}</span>
+            <button onclick="updateCartQty('${item.productId}', 1)" class="w-8 h-8 rounded-lg bg-bakery-terracotta text-white font-extrabold text-sm btn-press">+</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function checkoutCart() {
+      if (cart.length === 0) {
+        showToast('Keranjang masih kosong!');
+        return;
+      }
+      triggerHaptic(20);
+
+      const customer = (document.getElementById('pos-customer-name').value || '').trim() || 'Pelanggan Umum';
+      const status = document.getElementById('pos-payment-status').value;
+      const note = (document.getElementById('pos-note').value || '').trim();
+      const nowTime = new Date().toTimeString().slice(0, 5);
+
+      ensureDayRecord(appState.selectedDate);
+      appState.isDemoData = false;
+      appState.dailyData[appState.selectedDate].transactions.unshift({
+        id: 'tx_' + Date.now(),
+        time: nowTime,
+        customer,
+        method: selectedPayMethod,
+        status,
+        note,
+        items: JSON.parse(JSON.stringify(cart))
+      });
+
+      // Reset form & cart
+      cart = [];
+      document.getElementById('pos-customer-name').value = '';
+      document.getElementById('pos-note').value = '';
+      document.getElementById('pos-payment-status').value = 'Lunas';
+
+      saveState();
+      renderAll();
+      showToast('Transaksi berhasil dicatat!');
+    }
+
+    function renderTransactionHistory() {
+      const summary = getDaySummary(appState.selectedDate);
+      const filterStatus = document.getElementById('history-filter-status').value;
+      const listEl = document.getElementById('transaction-history-list');
+
+      const filtered = summary.transactions.filter(tx => filterStatus === 'ALL' || tx.status === filterStatus);
+
+      if (filtered.length === 0) {
+        listEl.innerHTML = `<div class="bg-white rounded-2xl p-6 text-center border border-bakery-sand text-xs text-bakery-mocha">Belum ada catatan transaksi untuk filter ini.</div>`;
+        return;
+      }
+
+      listEl.innerHTML = filtered.map(tx => {
+        const txTotal = tx.items.reduce((s, it) => s + it.price * it.qty, 0);
+        const isKasbon = tx.status === 'Kasbon';
+        return `
+          <div class="bg-white rounded-2xl p-3.5 border ${isKasbon ? 'border-rose-300 bg-rose-50/20' : 'border-bakery-sand/80'} shadow-xs space-y-2.5">
+            <div class="flex items-start justify-between gap-2">
+              <div>
+                <div class="flex items-center gap-1.5">
+                  <span class="text-xs font-extrabold text-bakery-espresso">${escapeHTML(tx.customer)}</span>
+                  <span class="text-[10px] text-bakery-mocha">• ${tx.time}</span>
+                </div>
+                <div class="flex items-center gap-1.5 mt-1">
+                  <span class="text-[10px] font-bold px-2 py-0.5 rounded-md ${isKasbon ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-800'}">${tx.status}</span>
+                  <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-bakery-latte text-bakery-mocha">${tx.method}</span>
+                </div>
+              </div>
+              <span class="text-sm font-extrabold text-bakery-espresso">${formatRupiah(txTotal)}</span>
+            </div>
+
+            <div class="bg-bakery-cream rounded-xl p-2.5 text-xs space-y-1">
+              ${tx.items.map(it => `
+                <div class="flex justify-between text-bakery-mocha">
+                  <span>${escapeHTML(it.name)} <strong class="text-bakery-espresso">×${it.qty}</strong></span>
+                  <span class="font-semibold">${formatRupiah(it.price * it.qty)}</span>
+                </div>
+              `).join('')}
+              ${tx.note ? `<p class="text-[11px] italic text-bakery-terracotta pt-1 border-t border-bakery-sand/50">Catatan: ${escapeHTML(tx.note)}</p>` : ''}
+            </div>
+
+            <div class="flex items-center justify-end gap-2 pt-0.5">
+              ${isKasbon ? `<button onclick="markKasbonPaid('${tx.id}')" class="min-h-[36px] px-3 rounded-xl bg-emerald-600 text-white text-xs font-bold btn-press">Tandai Lunas</button>` : ''}
+              <button onclick="confirmDeleteTransaction('${tx.id}')" class="min-h-[36px] px-3 rounded-xl bg-rose-50 text-rose-700 border border-rose-200 text-xs font-bold btn-press">Hapus</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function markKasbonPaid(txId) {
+      ensureDayRecord(appState.selectedDate);
+      const tx = appState.dailyData[appState.selectedDate].transactions.find(t => t.id === txId);
+      if (tx) {
+        tx.status = 'Lunas';
+        saveState();
+        renderAll();
+        showToast('Kasbon ditandai LUNAS!');
+      }
+    }
+
+    function confirmDeleteTransaction(txId) {
+      openConfirmDialog('Hapus Transaksi?', 'Stok kue dari transaksi ini akan otomatis dikembalikan.', () => {
+        ensureDayRecord(appState.selectedDate);
+        const list = appState.dailyData[appState.selectedDate].transactions;
+        const idx = list.findIndex(t => t.id === txId);
+        if (idx !== -1) {
+          list.splice(idx, 1);
+          saveState();
+          renderAll();
+          showToast('Transaksi dihapus');
+        }
+      });
+    }
+
+    // ==========================================
+    // RENDER & LOGIC: TAB 4 BELANJA / PENGELUARAN
+    // ==========================================
+    function renderBelanjaView() {
+      const summary = getDaySummary(appState.selectedDate);
+      document.getElementById('belanja-total-amount').textContent = formatRupiah(summary.expenseTotal);
+
+      const container = document.getElementById('expense-list-container');
+      if (summary.expenses.length === 0) {
+        container.innerHTML = `<div class="bg-white rounded-2xl p-6 text-center border border-bakery-sand text-xs text-bakery-mocha">Belum ada catatan belanja/pengeluaran pada tanggal ini.</div>`;
+        return;
+      }
+
+      container.innerHTML = summary.expenses.map(exp => `
+        <div class="bg-white rounded-2xl p-3.5 border border-bakery-sand/80 shadow-xs flex items-center justify-between gap-3">
+          <div class="min-w-0">
+            <div class="flex items-center gap-1.5">
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-rose-50 text-rose-700">${escapeHTML(exp.category)}</span>
+              <span class="text-[10px] text-bakery-mocha">${exp.time || ''}</span>
+            </div>
+            <h4 class="text-xs font-extrabold text-bakery-espresso mt-1 truncate">${escapeHTML(exp.name)}</h4>
+            ${exp.note ? `<p class="text-[11px] text-bakery-mocha truncate">${escapeHTML(exp.note)}</p>` : ''}
+          </div>
+          <div class="flex items-center gap-2.5 shrink-0">
+            <span class="text-sm font-extrabold text-rose-700">-${formatRupiah(exp.amount)}</span>
+            <button onclick="deleteExpense('${exp.id}')" class="w-8 h-8 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center text-xs font-bold btn-press" aria-label="Hapus">✕</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function deleteExpense(expId) {
+      ensureDayRecord(appState.selectedDate);
+      const list = appState.dailyData[appState.selectedDate].expenses;
+      const idx = list.findIndex(e => e.id === expId);
+      if (idx !== -1) {
+        list.splice(idx, 1);
+        saveState();
+        renderAll();
+        showToast('Catatan belanja dihapus');
+      }
+    }
+
+    // ==========================================
+    // RENDER & LOGIC: TAB 5 LAPORAN & EKSPOR
+    // ==========================================
+    function renderLaporanView() {
+      const summary = getDaySummary(appState.selectedDate);
+
+      // Breakdown Table
+      const breakdownEl = document.getElementById('report-product-breakdown');
+      breakdownEl.innerHTML = summary.productStats.map(p => `
+        <div class="py-2.5 flex items-center justify-between gap-2">
+          <div class="min-w-0">
+            <p class="font-bold text-bakery-espresso truncate">${escapeHTML(p.name)}</p>
+            <p class="text-[11px] text-bakery-mocha">Awal: ${p.initial} • Terjual: <strong class="text-emerald-700">${p.sold}</strong> • Sisa: <strong class="${p.remaining > 0 ? 'text-amber-700' : 'text-bakery-mocha'}">${p.remaining}</strong></p>
+          </div>
+          <span class="font-extrabold text-bakery-espresso shrink-0">${formatRupiah(p.revenue)}</span>
+        </div>
+      `).join('');
+
+      updateDatabaseStatsUI();
+      drawWeeklyChart();
+    }
+
+    function drawWeeklyChart() {
+      const canvas = document.getElementById('weekly-chart-canvas');
+      if (!canvas) return;
+      const parent = canvas.parentElement;
+      const dpr = window.devicePixelRatio || 1;
+      const width = parent.clientWidth || 320;
+      const height = parent.clientHeight || 176;
+
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
+      const ctx = canvas.getContext('2d');
+      ctx.scale(dpr, dpr);
+      ctx.clearRect(0, 0, width, height);
+
+      // Gather 7 days ending on selectedDate
+      const [sy, sm, sd] = appState.selectedDate.split('-').map(Number);
+      const baseDate = new Date(sy, sm - 1, sd);
+      const points = [];
+      let maxVal = 100000;
+
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date(baseDate);
+        d.setDate(baseDate.getDate() - i);
+        const iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        const sum = getDaySummary(iso);
+        maxVal = Math.max(maxVal, sum.omzet, sum.netProfit);
+        points.push({
+          label: `${d.getDate()}/${d.getMonth() + 1}`,
+          omzet: sum.omzet,
+          profit: Math.max(0, sum.netProfit)
+        });
+      }
+
+      const padLeft = 12;
+      const padRight = 12;
+      const padTop = 16;
+      const padBottom = 26;
+      const chartW = width - padLeft - padRight;
+      const chartH = height - padTop - padBottom;
+      const colW = chartW / points.length;
+
+      // Baseline
+      ctx.strokeStyle = '#E6D5C3';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(padLeft, padTop + chartH);
+      ctx.lineTo(width - padRight, padTop + chartH);
+      ctx.stroke();
+
+      points.forEach((pt, idx) => {
+        const centerX = padLeft + idx * colW + colW / 2;
+        const barW = Math.min(14, colW * 0.32);
+
+        const hOmzet = (pt.omzet / maxVal) * chartH;
+        const hProfit = (pt.profit / maxVal) * chartH;
+
+        // Omzet Bar (Caramel)
+        ctx.fillStyle = '#C87D55';
+        roundRect(ctx, centerX - barW - 1.5, padTop + chartH - hOmzet, barW, hOmzet, 4);
+        ctx.fill();
+
+        // Profit Bar (Emerald)
+        ctx.fillStyle = '#10B981';
+        roundRect(ctx, centerX + 1.5, padTop + chartH - hProfit, barW, hProfit, 4);
+        ctx.fill();
+
+        // Date Label
+        ctx.fillStyle = '#634133';
+        ctx.font = '600 10px "Plus Jakarta Sans", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(pt.label, centerX, height - 8);
+      });
+    }
+
+    function roundRect(ctx, x, y, w, h, r) {
+      if (h <= 0) { ctx.beginPath(); return; }
+      r = Math.min(r, h / 2, w / 2);
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.arcTo(x + w, y, x + w, y + h, r);
+      ctx.arcTo(x + w, y + h, x, y + h, 0);
+      ctx.arcTo(x, y + h, x, y, 0);
+      ctx.arcTo(x, y, x + w, y, r);
+      ctx.closePath();
+    }
+
+    // WhatsApp Report Generator & Clipboard Copy (using execCommand fallback for iFrame safety)
+    function copyWhatsAppReport() {
+      const s = getDaySummary(appState.selectedDate);
+      const tgl = formatIndonesianDate(appState.selectedDate);
+
+      let lines = [
+        `🧁 *LAPORAN JUALAN KUE HARIAN*`,
+        `📅 Tanggal: ${tgl}`,
+        `--------------------------------`,
+        `💰 *Total Omzet:* ${formatRupiah(s.omzet)}`,
+        `🛒 *Pengeluaran:* ${formatRupiah(s.expenseTotal)}`,
+        `✅ *Laba Bersih:* ${formatRupiah(s.netProfit)}`,
+        `--------------------------------`,
+        `💳 *Rincian Pembayaran:*`,
+        `• Tunai: ${formatRupiah(s.payTunai)}`,
+        `• QRIS: ${formatRupiah(s.payQris)}`,
+        `• Transfer: ${formatRupiah(s.payTransfer)}`,
+        s.kasbonTotal > 0 ? `• Kasbon (Belum Lunas): ${formatRupiah(s.kasbonTotal)}` : null,
+        `--------------------------------`,
+        `📦 *Rekap Kue (${s.totalSoldPcs} Terjual / Sisa ${s.totalRemainingPcs}):*`
+      ].filter(Boolean);
+
+      s.productStats.forEach(p => {
+        if (p.initial > 0 || p.sold > 0) {
+          lines.push(`- ${p.name}: Terjual ${p.sold} | Sisa ${p.remaining}`);
+        }
+      });
+
+      if (s.expenses.length > 0) {
+        lines.push(`--------------------------------`);
+        lines.push(`🧾 *Belanja Hari Ini:*`);
+        s.expenses.forEach(e => {
+          lines.push(`- ${e.name}: ${formatRupiah(e.amount)}`);
+        });
+      }
+
+      const textReport = lines.join('\n');
+      copyTextToClipboard(textReport);
+      showToast('Laporan WhatsApp disalin! Siap ditempel.');
+    }
+
+    function copyTextToClipboard(text) {
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.select();
+      try {
+        document.execCommand('copy');
+      } catch (e) {
+        console.error('Copy failed', e);
+      }
+      document.body.removeChild(textarea);
+    }
+
+    // Export CSV
+    function exportCSV() {
+      const s = getDaySummary(appState.selectedDate);
+      let csv = 'Tanggal,Nama Kue,Kategori,Harga Jual,HPP,Stok Awal,Terjual,Sisa,Total Omzet\n';
+      s.productStats.forEach(p => {
+        csv += `"${appState.selectedDate}","${p.name.replace(/"/g, '""')}","${p.category}",${p.price},${p.cost},${p.initial},${p.sold},${p.remaining},${p.revenue}\n`;
+      });
+
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Laporan-Kue-${appState.selectedDate}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('File CSV berhasil diunduh!');
+    }
+
+    // ==========================================
+    // MANUAL OFFLINE DATABASE MANAGEMENT (JSON)
+    // ==========================================
+    function getDatabaseMetrics(stateObj = appState) {
+      const dates = Object.keys(stateObj.dailyData || {}).sort();
+      let totalTx = 0;
+      let totalExp = 0;
+      dates.forEach(d => {
+        const day = stateObj.dailyData[d] || {};
+        totalTx += Array.isArray(day.transactions) ? day.transactions.length : 0;
+        totalExp += Array.isArray(day.expenses) ? day.expenses.length : 0;
+      });
+      const jsonStr = JSON.stringify(stateObj);
+      const sizeKB = Math.max(1, Math.round((new Blob([jsonStr]).size / 1024) * 10) / 10);
+      return {
+        daysCount: dates.length,
+        dateRange: dates.length > 0 ? `${dates[0]} s/d ${dates[dates.length - 1]}` : 'Kosong',
+        productsCount: Array.isArray(stateObj.products) ? stateObj.products.length : 0,
+        totalTx,
+        totalExp,
+        sizeKB
+      };
+    }
+
+    function shouldRemindBackup() {
+      if (appState.isDemoData) return { needed: false, reason: '' };
+      const metrics = getDatabaseMetrics(appState);
+      if (metrics.totalTx === 0 && metrics.totalExp === 0) return { needed: false, reason: '' };
+
+      const changes = Number(appState.changesSinceBackup) || 0;
+      if (!appState.lastBackupAt) {
+        return {
+          needed: true,
+          reason: `Ada ${metrics.totalTx} transaksi belum pernah di-backup ke file.`
+        };
+      }
+
+      const lastTime = new Date(appState.lastBackupAt).getTime();
+      const daysDiff = (Date.now() - lastTime) / (1000 * 60 * 60 * 24);
+      if (daysDiff >= 3) {
+        return {
+          needed: true,
+          reason: `Sudah ${Math.floor(daysDiff)} hari sejak backup terakhir.`
+        };
+      }
+      if (changes >= 15) {
+        return {
+          needed: true,
+          reason: `Ada ${changes} perubahan data baru sejak backup terakhir.`
+        };
+      }
+      return { needed: false, reason: '' };
+    }
+
+    function updateBackupReminderUI() {
+      const banner = document.getElementById('backup-reminder-banner');
+      const desc = document.getElementById('backup-reminder-desc');
+      if (!banner || !desc) return;
+
+      const check = shouldRemindBackup();
+      banner.classList.toggle('hidden', !check.needed);
+      if (check.needed) {
+        desc.textContent = check.reason;
+      }
+    }
+
+    function updateDatabaseStatsUI() {
+      const metrics = getDatabaseMetrics(appState);
+      const daysEl = document.getElementById('db-stat-days');
+      const recEl = document.getElementById('db-stat-records');
+      const sizeEl = document.getElementById('db-stat-size');
+      const lastEl = document.getElementById('db-last-backup-text');
+      const badgeEl = document.getElementById('db-health-badge');
+      const undoBox = document.getElementById('undo-import-box');
+
+      if (daysEl) daysEl.textContent = `${metrics.daysCount} hari`;
+      if (recEl) recEl.textContent = `${metrics.totalTx} / ${metrics.totalExp}`;
+      if (sizeEl) sizeEl.textContent = `${metrics.productsCount} / ${metrics.sizeKB} KB`;
+
+      if (lastEl) {
+        if (appState.lastBackupAt) {
+          const dt = new Date(appState.lastBackupAt);
+          const dateStr = dt.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+          const timeStr = dt.toTimeString().slice(0, 5);
+          lastEl.textContent = `${dateStr}, ${timeStr}`;
+        } else {
+          lastEl.textContent = 'Belum pernah';
+        }
+      }
+
+      if (badgeEl) {
+        const reminder = shouldRemindBackup();
+        if (reminder.needed) {
+          badgeEl.className = 'text-[10px] font-extrabold px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 shrink-0';
+          badgeEl.textContent = 'Perlu Backup';
+        } else {
+          badgeEl.className = 'text-[10px] font-extrabold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 shrink-0';
+          badgeEl.textContent = 'Terbackup';
+        }
+      }
+
+      if (undoBox) {
+        const hasSnapshot = Boolean(localStorage.getItem(SNAPSHOT_KEY));
+        undoBox.classList.toggle('hidden', !hasSnapshot);
+      }
+    }
+
+    function buildExportPayload() {
+      return {
+        appName: 'KueKu Catatan',
+        schemaVersion: 2,
+        exportedAt: new Date().toISOString(),
+        storeName: appState.storeName || 'KueKu Catatan',
+        dailyTarget: appState.dailyTarget || 500000,
+        products: appState.products,
+        dailyData: appState.dailyData
+      };
+    }
+
+    function exportDatabaseJSON() {
+      triggerHaptic(18);
+      const now = new Date();
+      const pad = (n) => String(n).padStart(2, '0');
+      const stamp = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}-${pad(now.getHours())}${pad(now.getMinutes())}`;
+
+      appState.lastBackupAt = now.toISOString();
+      appState.changesSinceBackup = 0;
+      saveState(false);
+
+      const payload = buildExportPayload();
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `KueKu-DB-${stamp}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+
+      renderAll();
+      showToast(`Database di-export: KueKu-DB-${stamp}.json`);
+    }
+
+    function copyDatabaseJSONText() {
+      triggerHaptic(12);
+      const now = new Date();
+      appState.lastBackupAt = now.toISOString();
+      appState.changesSinceBackup = 0;
+      saveState(false);
+
+      const payload = buildExportPayload();
+      copyTextToClipboard(JSON.stringify(payload));
+      renderAll();
+      showToast('Teks database JSON disalin ke clipboard!');
+    }
+
+    function openPasteImportModal() {
+      document.getElementById('paste-json-textarea').value = '';
+      openModal('modal-paste-json');
+    }
+
+    function processPastedJSON() {
+      const rawText = (document.getElementById('paste-json-textarea').value || '').trim();
+      if (!rawText) {
+        showToast('Tempelkan teks JSON terlebih dahulu');
+        return;
+      }
+      validateAndPreviewImportJSON(rawText, () => {
+        closeModal('modal-paste-json');
+      });
+    }
+
+    function handleImportFileSelect(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        validateAndPreviewImportJSON(e.target.result);
+        event.target.value = '';
+      };
+      reader.readAsText(file);
+    }
+
+    function validateAndPreviewImportJSON(rawString, onValidCallback = null) {
+      try {
+        const parsed = JSON.parse(rawString);
+        if (!parsed || !Array.isArray(parsed.products) || typeof parsed.dailyData !== 'object' || parsed.dailyData === null) {
+          showToast('Format JSON bukan database KueKu yang valid');
+          return;
+        }
+
+        pendingImportPayload = parsed;
+        const metrics = getDatabaseMetrics(parsed);
+
+        document.getElementById('imp-prev-store').textContent = parsed.storeName || 'KueKu Catatan';
+        document.getElementById('imp-prev-daterange').textContent = metrics.dateRange;
+        document.getElementById('imp-prev-products').textContent = metrics.productsCount;
+        document.getElementById('imp-prev-tx').textContent = metrics.totalTx;
+        document.getElementById('imp-prev-exp').textContent = metrics.totalExp;
+
+        // Default to merge mode
+        const mergeRadio = document.querySelector('input[name="import-mode"][value="merge"]');
+        if (mergeRadio) mergeRadio.checked = true;
+        updateImportModeCards();
+
+        if (onValidCallback) onValidCallback();
+        openModal('modal-import-preview');
+      } catch (err) {
+        showToast('File JSON rusak atau tidak dapat dibaca');
+      }
+    }
+
+    function updateImportModeCards() {
+      const mode = document.querySelector('input[name="import-mode"]:checked')?.value || 'merge';
+      const mergeCard = document.getElementById('mode-card-merge');
+      const replaceCard = document.getElementById('mode-card-replace');
+
+      if (mode === 'merge') {
+        mergeCard.className = 'flex items-start gap-3 p-3.5 rounded-2xl border-2 border-emerald-600 bg-emerald-50/40 cursor-pointer';
+        replaceCard.className = 'flex items-start gap-3 p-3.5 rounded-2xl border border-bakery-sand bg-white cursor-pointer';
+      } else {
+        replaceCard.className = 'flex items-start gap-3 p-3.5 rounded-2xl border-2 border-bakery-terracotta bg-bakery-latte/40 cursor-pointer';
+        mergeCard.className = 'flex items-start gap-3 p-3.5 rounded-2xl border border-bakery-sand bg-white cursor-pointer';
+      }
+    }
+
+    function executeDatabaseImport() {
+      if (!pendingImportPayload) return;
+      triggerHaptic(22);
+
+      // Save emergency pre-import snapshot for Undo
+      try {
+        localStorage.setItem(SNAPSHOT_KEY, JSON.stringify(appState));
+      } catch (e) {}
+
+      const mode = document.querySelector('input[name="import-mode"]:checked')?.value || 'merge';
+      const incoming = pendingImportPayload;
+
+      if (mode === 'replace') {
+        appState = {
+          storeName: incoming.storeName || appState.storeName || 'KueKu Catatan',
+          selectedDate: appState.selectedDate || getTodayISO(0),
+          dailyTarget: incoming.dailyTarget || appState.dailyTarget || 500000,
+          isDemoData: false,
+          lastBackupAt: new Date().toISOString(),
+          changesSinceBackup: 0,
+          products: Array.isArray(incoming.products) ? incoming.products : [],
+          dailyData: incoming.dailyData || {}
+        };
+        ensureDayRecord(appState.selectedDate);
+        saveState(false);
+        closeModal('modal-import-preview');
+        pendingImportPayload = null;
+        renderAll();
+        showToast('Database berhasil dipulihkan sepenuhnya!');
+      } else {
+        // Smart Merge Mode: combine products, stocks, transactions, and expenses without duplicates
+        const existingProdIds = new Set(appState.products.map(p => p.id));
+        const existingProdNames = new Set(appState.products.map(p => p.name.toLowerCase().trim()));
+        let addedProds = 0;
+        let addedTx = 0;
+        let addedExp = 0;
+
+        (incoming.products || []).forEach(incProd => {
+          if (!existingProdIds.has(incProd.id) && !existingProdNames.has((incProd.name || '').toLowerCase().trim())) {
+            appState.products.push({ ...incProd });
+            existingProdIds.add(incProd.id);
+            addedProds++;
+          }
+        });
+
+        const incomingDates = Object.keys(incoming.dailyData || {});
+        incomingDates.forEach(dateKey => {
+          ensureDayRecord(dateKey);
+          const targetDay = appState.dailyData[dateKey];
+          const srcDay = incoming.dailyData[dateKey] || {};
+
+          // Merge stocks (keep existing non-zero stock, otherwise adopt incoming stock)
+          if (srcDay.stocks && typeof srcDay.stocks === 'object') {
+            Object.keys(srcDay.stocks).forEach(pid => {
+              if ((Number(targetDay.stocks[pid]) || 0) === 0 && Number(srcDay.stocks[pid]) > 0) {
+                targetDay.stocks[pid] = Number(srcDay.stocks[pid]);
+              }
+            });
+          }
+
+          // Merge transactions by unique ID
+          const existingTxIds = new Set(targetDay.transactions.map(t => t.id));
+          (srcDay.transactions || []).forEach(tx => {
+            if (!existingTxIds.has(tx.id)) {
+              targetDay.transactions.push({ ...tx });
+              existingTxIds.add(tx.id);
+              addedTx++;
+            }
+          });
+
+          // Merge expenses by unique ID
+          const existingExpIds = new Set(targetDay.expenses.map(e => e.id));
+          (srcDay.expenses || []).forEach(exp => {
+            if (!existingExpIds.has(exp.id)) {
+              targetDay.expenses.push({ ...exp });
+              existingExpIds.add(exp.id);
+              addedExp++;
+            }
+          });
+        });
+
+        appState.isDemoData = false;
+        saveState(true);
+        closeModal('modal-import-preview');
+        pendingImportPayload = null;
+        renderAll();
+        showToast(`Gabung selesai: +${addedTx} transaksi, +${addedExp} belanja, +${addedProds} menu`);
+      }
+    }
+
+    function undoLastImport() {
+      const snapRaw = localStorage.getItem(SNAPSHOT_KEY);
+      if (!snapRaw) {
+        showToast('Tidak ada cadangan sebelum import');
+        return;
+      }
+      openConfirmDialog('Batalkan Import Terakhir?', 'Database akan dikembalikan ke kondisi persis sebelum Anda melakukan import terakhir.', () => {
+        try {
+          appState = JSON.parse(snapRaw);
+          localStorage.removeItem(SNAPSHOT_KEY);
+          ensureDayRecord(appState.selectedDate);
+          saveState(false);
+          renderAll();
+          showToast('Import terakhir berhasil dibatalkan!');
+        } catch (e) {
+          showToast('Gagal memulihkan snapshot');
+        }
+      });
+    }
+
+    function loadDemoData() {
+      openConfirmDialog('Muat Data Contoh?', 'Data saat ini akan diganti dengan contoh simulasi jualan kue.', () => {
+        seedInitialDemoData();
+        renderAll();
+        showToast('Data contoh dimuat');
+      });
+    }
+
+    function startFreshFromZero() {
+      openConfirmDialog('Bersihkan Data Contoh & Mulai dari Nol?', 'Semua transaksi contoh akan dihapus agar Anda bisa langsung mencatat jualan hari ini. Menu kue tetap disimpan atau bisa Anda ubah.', () => {
+        appState.isDemoData = false;
+        appState.dailyData = {};
+        appState.lastBackupAt = null;
+        appState.changesSinceBackup = 0;
+        appState.selectedDate = getTodayISO(0);
+        ensureDayRecord(appState.selectedDate);
+        saveState(false);
+        renderAll();
+        showToast('Siap digunakan! Silakan atur stok kue hari ini.');
+      });
+    }
+
+    function openResetConfirmModal() {
+      openConfirmDialog('Reset Semua Data?', 'Seluruh catatan transaksi, stok, dan belanja akan dihapus permanen.', () => {
+        localStorage.removeItem(STORAGE_KEY);
+        localStorage.removeItem(SNAPSHOT_KEY);
+        appState = {
+          storeName: 'KueKu Catatan',
+          selectedDate: getTodayISO(0),
+          dailyTarget: 500000,
+          isDemoData: false,
+          lastBackupAt: null,
+          changesSinceBackup: 0,
+          products: createDefaultProducts(),
+          dailyData: {}
+        };
+        ensureDayRecord(appState.selectedDate);
+        saveState(false);
+        renderAll();
+        showToast('Semua data telah direset');
+      });
+    }
+
+    // ==========================================
+    // MODALS HANDLERS
+    // ==========================================
+    function openModal(id) {
+      document.getElementById(id).classList.remove('hidden');
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.add('hidden');
+    }
+
+    function openProductModal(prodId = null) {
+      ensureDayRecord(appState.selectedDate);
+      const titleEl = document.getElementById('modal-product-title');
+      const delBtn = document.getElementById('btn-delete-product');
+
+      if (prodId) {
+        const p = appState.products.find(item => item.id === prodId);
+        if (!p) return;
+        titleEl.textContent = 'Edit Menu & Stok Kue';
+        document.getElementById('prod-id').value = p.id;
+        document.getElementById('prod-name').value = p.name;
+        document.getElementById('prod-category').value = p.category;
+        document.getElementById('prod-price').value = p.price;
+        document.getElementById('prod-cost').value = p.cost || 0;
+        document.getElementById('prod-initial-stock').value = appState.dailyData[appState.selectedDate].stocks[p.id] || 0;
+        delBtn.classList.remove('hidden');
+      } else {
+        titleEl.textContent = 'Tambah Menu Kue Baru';
+        document.getElementById('prod-id').value = '';
+        document.getElementById('prod-name').value = '';
+        document.getElementById('prod-category').value = 'Kue Basah';
+        document.getElementById('prod-price').value = '';
+        document.getElementById('prod-cost').value = '';
+        document.getElementById('prod-initial-stock').value = '20';
+        delBtn.classList.add('hidden');
+      }
+      openModal('modal-product');
+    }
+
+    function saveProductForm(e) {
+      e.preventDefault();
+      const id = document.getElementById('prod-id').value;
+      const name = document.getElementById('prod-name').value.trim();
+      const category = document.getElementById('prod-category').value;
+      const price = Number(document.getElementById('prod-price').value) || 0;
+      const cost = Number(document.getElementById('prod-cost').value) || 0;
+      const initialStock = Number(document.getElementById('prod-initial-stock').value) || 0;
+
+      ensureDayRecord(appState.selectedDate);
+
+      if (id) {
+        const idx = appState.products.findIndex(p => p.id === id);
+        if (idx !== -1) {
+          appState.products[idx] = { id, name, category, price, cost };
+          appState.dailyData[appState.selectedDate].stocks[id] = initialStock;
+        }
+        showToast('Menu kue diperbarui');
+      } else {
+        const newId = 'p_' + Date.now();
+        appState.products.push({ id: newId, name, category, price, cost });
+        appState.dailyData[appState.selectedDate].stocks[newId] = initialStock;
+        showToast('Menu kue baru ditambahkan');
+      }
+
+      saveState();
+      closeModal('modal-product');
+      renderAll();
+    }
+
+    function deleteCurrentProduct() {
+      const id = document.getElementById('prod-id').value;
+      if (!id) return;
+      closeModal('modal-product');
+      openConfirmDialog('Hapus Menu Kue?', 'Menu ini akan dihapus dari daftar produk Anda.', () => {
+        appState.products = appState.products.filter(p => p.id !== id);
+        saveState();
+        renderAll();
+        showToast('Menu kue dihapus');
+      });
+    }
+
+    function openExpenseModal(presetName = '', presetCat = 'Bahan Baku') {
+      document.getElementById('exp-name').value = presetName;
+      document.getElementById('exp-category').value = presetCat;
+      document.getElementById('exp-amount').value = '';
+      document.getElementById('exp-note').value = '';
+      openModal('modal-expense');
+    }
+
+    function saveExpenseForm(e) {
+      e.preventDefault();
+      const name = document.getElementById('exp-name').value.trim();
+      const amount = Number(document.getElementById('exp-amount').value) || 0;
+      const category = document.getElementById('exp-category').value;
+      const note = document.getElementById('exp-note').value.trim();
+      const nowTime = new Date().toTimeString().slice(0, 5);
+
+      ensureDayRecord(appState.selectedDate);
+      appState.dailyData[appState.selectedDate].expenses.unshift({
+        id: 'exp_' + Date.now(),
+        time: nowTime,
+        name,
+        amount,
+        category,
+        note
+      });
+
+      saveState();
+      closeModal('modal-expense');
+      renderAll();
+      showToast('Pengeluaran berhasil dicatat');
+    }
+
+    function openTargetModal() {
+      document.getElementById('target-input-amount').value = appState.dailyTarget || 500000;
+      openModal('modal-target');
+    }
+
+    function saveTargetForm(e) {
+      e.preventDefault();
+      const val = Number(document.getElementById('target-input-amount').value) || 500000;
+      appState.dailyTarget = val;
+      saveState();
+      closeModal('modal-target');
+      renderAll();
+      showToast('Target harian diperbarui');
+    }
+
+    function openConfirmDialog(title, message, onConfirm) {
+      document.getElementById('confirm-title').textContent = title;
+      document.getElementById('confirm-message').textContent = message;
+      const yesBtn = document.getElementById('confirm-yes-btn');
+      yesBtn.onclick = () => {
+        closeModal('modal-confirm');
+        onConfirm();
+      };
+      openModal('modal-confirm');
+    }
+
+    // Toast Notification
+    let toastTimer = null;
+    function showToast(msg) {
+      const banner = document.getElementById('toast-banner');
+      document.getElementById('toast-message').textContent = msg;
+      banner.classList.remove('opacity-0', '-translate-y-2');
+      banner.classList.add('opacity-100', 'translate-y-0');
+
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        banner.classList.remove('opacity-100', 'translate-y-0');
+        banner.classList.add('opacity-0', '-translate-y-2');
+      }, 2400);
+    }
+
+    function escapeHTML(str) {
+      return String(str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    // Master Render
+    function renderAll() {
+      updateDateHeaderUI();
+      renderDashboard();
+      renderStokView();
+      renderKasirView();
+      renderBelanjaView();
+      if (activeTab === 'laporan') {
+        renderLaporanView();
+      }
+    }
+
+    // Initialize on Window Load
+    window.addEventListener('DOMContentLoaded', () => {
+      initStandalonePWA();
+      updateNetworkBadge();
+      loadState();
+      renderAll();
+    });
+
+    window.addEventListener('online', updateNetworkBadge);
+    window.addEventListener('offline', updateNetworkBadge);
+
+    window.addEventListener('resize', () => {
+      if (activeTab === 'laporan') {
+        drawWeeklyChart();
+      }
+    });
+  </script>
+</body>
+</html>
